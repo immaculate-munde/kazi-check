@@ -106,5 +106,17 @@
     "listingUrl": "https://www.knec.ac.ke/category/jobs/",
     "dateIndexed": "2026-11-07",
     "chargesFee": false
+  },
+  {
+    "orgName": "Kenya Defence Forces",
+    "aliases": ["KDF", "Ministry of Defence", "Kenya Ministry of Defence"],
+    "officialDomain": "mod.go.ke",
+    "officialApplyRoute": "portal",
+    "applyUrl": "https://mod.go.ke",
+    "emailDomain": "mod.go.ke",
+    "listingTitle": "Ministry of Defence / KDF",
+    "listingUrl": "https://mod.go.ke",
+    "dateIndexed": "2026-11-07",
+    "chargesFee": false
   }
 ]
