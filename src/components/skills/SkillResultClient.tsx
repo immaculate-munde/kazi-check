@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { trackerPrefillHref } from "@/lib/tracker/query";
 import type { SkillMatchRecord } from "@/lib/types";
 
 export function SkillResultClient({ id }: { id: string }) {
@@ -66,8 +67,19 @@ export function SkillResultClient({ id }: { id: string }) {
           <Button href="/quiz" variant="solid">
             Take domain quiz
           </Button>
-          <Button href="/tracker" variant="outline">
-            Open tracker
+          <Button
+            href={trackerPrefillHref({
+              title: record.jobTitle || "Skill-matched role",
+              employer: "From skill match",
+              notes: `Compatibility ${record.compatibilityScore}%`,
+              checkId: record.checkId,
+              verificationResult: `Skill match ${record.compatibilityScore}%`,
+              source: "skill match",
+              autosave: true,
+            })}
+            variant="outline"
+          >
+            Track this role
           </Button>
         </div>
       </BrutalCard>

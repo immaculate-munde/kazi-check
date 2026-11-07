@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
 import { FlagCountPill } from "@/components/ui/FlagCountPill";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { trackerPrefillHref } from "@/lib/tracker/query";
 import type { CheckRecord } from "@/lib/types";
 import { displayVerdict } from "@/lib/verdict";
 
@@ -17,6 +19,7 @@ const FLAG_REASONS = [
 ];
 
 export function EvidenceView({ checkId }: { checkId: string }) {
+  const router = useRouter();
   const [check, setCheck] = useState<CheckRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,23 +118,28 @@ export function EvidenceView({ checkId }: { checkId: string }) {
     else setSmsStatus("failed");
   }
 
-  async function saveToTracker() {
+  function saveToTracker() {
     if (!check) return;
-    const extracted = check.extracted as { claimedOrg?: string; jobTitle?: string };
-    await fetch("/api/tracker", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: extracted.jobTitle || "Checked opportunity",
-        employer: extracted.claimedOrg || "Unknown employer",
-        source: "pre-application check",
-        verificationResult: `${check.verdict} (${check.riskScore}/100)`,
-        checkId: check.id,
-        status: "saved",
-        notes: check.recommendedAction,
-      }),
-    });
+    const extracted = check.extracted as {
+      claimedOrg?: string | null;
+      jobTitle?: string | null;
+      employer?: string | null;
+    };
+    const title = extracted.jobTitle || "Checked opportunity";
+    const employer =
+      extracted.claimedOrg || extracted.employer || "Unknown employer";
     setSavedTracker(true);
+    router.push(
+      trackerPrefillHref({
+        title,
+        employer,
+        notes: check.recommendedAction,
+        checkId: check.id,
+        verificationResult: `${check.verdict} (${check.riskScore}/100)`,
+        source: "pre-application check",
+        autosave: true,
+      }),
+    );
   }
 
   if (loading) {
