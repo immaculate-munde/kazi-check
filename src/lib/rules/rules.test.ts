@@ -18,6 +18,7 @@ describe("runRules job_offer", () => {
       },
       12,
       "Pay interview fee via M-Pesa before joining KenGen",
+      ["Asked for interview fee via M-Pesa"],
     );
 
     expect(result.verdict).toBe("SCAM");

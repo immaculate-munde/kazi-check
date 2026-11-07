@@ -24,6 +24,7 @@ export function runRules(
   extracted: Extracted,
   communityFlagCount = 0,
   rawText = "",
+  communityReasons: string[] = [],
 ): RulesResult {
   const evidence: EvidenceItem[] =
     direction === "applicant"
@@ -31,11 +32,16 @@ export function runRules(
       : offerRules(extracted as ExtractedOffer, rawText);
 
   if (communityFlagCount >= 3) {
+    const reasonText =
+      communityReasons.length > 0
+        ? ` Reasons: ${communityReasons.slice(0, 3).join("; ")}`
+        : "";
     evidence.push({
       ruleId: "community_flags",
       title: "Community flags",
-      snippet: `${communityFlagCount} people flagged related subjects as scam`,
+      snippet: `${communityFlagCount} people flagged related subjects as scam.${reasonText}`,
       severity: communityFlagCount >= 10 ? "high" : "medium",
+      sourceType: "community",
     });
   }
 
@@ -101,7 +107,7 @@ function offerRules(extracted: ExtractedOffer, rawText: string): EvidenceItem[] 
     });
   }
 
-  // WHOIS stub — always skip unless BE wires API
+  // WHOIS stub; always skip unless BE wires API
   if (domain && process.env.WHOIS_API_KEY) {
     evidence.push({
       ruleId: "whois_age",

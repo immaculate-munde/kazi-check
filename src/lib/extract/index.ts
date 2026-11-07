@@ -28,7 +28,7 @@ async function extractWithLlm(
   direction: CheckDirection,
   text: string,
 ): Promise<Extracted> {
-  // Scaffold stub — implement real provider call in issue work.
+  // Scaffold stub; implement real provider call in issue work.
   void direction;
   void text;
   throw new Error("LLM extract not implemented yet");
@@ -61,6 +61,11 @@ function heuristicExtract(direction: CheckDirection, text: string): Extracted {
 
   const out: ExtractedOffer = {
     domain: domains[0] ?? null,
+    jobTitle:
+      text.match(/(?:position|role|title|hiring)\s*[:\-]?\s*(.+)/i)?.[1]
+        ?.split("\n")[0]
+        ?.trim()
+        .slice(0, 100) ?? null,
     salary: text.match(/(?:KES|Ksh|USD)\s?[\d,]+/i)?.[0] ?? null,
     contactMethod: phones[0] ? "phone" : emails[0] ? "email" : null,
     paymentTerms: feeHits[0] ?? null,

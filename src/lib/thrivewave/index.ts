@@ -30,7 +30,7 @@ export async function sendSms(payload: SmsPayload): Promise<SmsResult> {
   return {
     ok: false,
     stub: false,
-    error: "ThriveWave HTTP client not implemented — see backend issue",
+    error: "ThriveWave HTTP client not implemented; see backend issue",
   };
 }
 
@@ -90,7 +90,7 @@ export function handleUssd(req: UssdRequest): UssdResponse {
     return { body: "CON Invalid option. 1 Offer 2 Applicant 3 Help" };
   }
 
-  // Lite verdict hint — full pipeline called from webhook route
+  // Lite verdict hint; full pipeline called from webhook route
   sessions.delete(req.sessionId);
   const preview = input.slice(0, 40);
   return {
