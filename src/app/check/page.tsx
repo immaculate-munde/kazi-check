@@ -23,7 +23,7 @@ export default async function CheckPage({
   const blurb =
     direction === "applicant"
       ? "Paste applicant outreach, CV claims, or a suspicious message. You’ll get a credibility verdict with evidence."
-      : "Paste the job ad or recruiter message. You’ll get SAFE / SUSPICIOUS / SCAM with an evidence trail.";
+      : "Paste the job ad or recruiter message. You’ll get a risk verdict, evidence, and what to confirm yourself.";
 
   return (
     <div className="mx-auto w-full max-w-3xl px-5 py-10 md:px-8 md:py-14">

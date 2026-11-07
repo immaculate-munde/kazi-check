@@ -28,6 +28,7 @@ export async function POST(request: Request) {
       direction,
       text: text ?? "",
       url: url || undefined,
+      notifyPhone: phone_for_sms?.trim(),
     });
 
     let sms: { ok: boolean; stub?: boolean } | undefined;

@@ -42,9 +42,9 @@ export function formatVerdictSms(input: {
 }): string {
   const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const lines = [
-    `Kazi Check: ${input.verdict}`,
+    `Kazi Check: ${input.verdict}. Don't pay. Verify on the official site.`,
     ...input.topEvidence.slice(0, 2).map((e) => `• ${e}`),
-    `${base}/checks/${input.checkId}`,
+    `Report: ${base}/checks/${input.checkId}`,
   ];
   return lines.join("\n");
 }

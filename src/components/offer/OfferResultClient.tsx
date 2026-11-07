@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import type { OfferAnalysisRecord } from "@/lib/types";
+import { displayVerdict } from "@/lib/verdict";
 
 export function OfferResultClient({ id }: { id: string }) {
   const [record, setRecord] = useState<OfferAnalysisRecord | null>(null);
@@ -25,7 +26,7 @@ export function OfferResultClient({ id }: { id: string }) {
     <div className="mx-auto w-full max-w-3xl px-5 py-10 md:px-8 md:py-14">
       <SectionLabel>Offer report</SectionLabel>
       <BrutalCard className="mt-8" tone="white">
-        <h1 className="text-3xl font-medium">{record.verdict.replaceAll("_", " ")}</h1>
+        <h1 className="text-3xl font-medium">{displayVerdict(record.verdict)}</h1>
         <p className="mt-2 text-kc-ink/75">
           Risk {record.riskScore}/100 · {record.riskBand.replaceAll("_", " ")}
         </p>

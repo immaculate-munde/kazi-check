@@ -6,9 +6,18 @@ import type {
 } from "@/lib/types";
 import { detectSubjectsFromText, isFreeEmail } from "@/lib/subjects/normalize";
 
+const KNOWN_ORGS =
+  /\b(KenGen|Safaricom|KRA|Kenya Revenue Authority|Equity Bank|KCB|Kenya Railways|KNEC|Kenya National Examinations Council|Central Bank of Kenya|CBK|Public Service Commission|PSC|Ministry of [\w\s]+|UN|WHO|Google|Microsoft)\b/i;
+
+const ORG_SHAPE =
+  /\b([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,4}\s+(?:Authority|Commission|Corporation|Council|PLC))\b/;
+
+const UPFRONT_FEE =
+  /(?:interview|medical|visa|training|background|application|registration|clearance|processing)\s+(?:fee|fees|payment)|(?:pay|send|deposit)\s+(?:kes|ksh|kshs)?\s*[\d,]+|(?:kes|ksh|kshs)\s*[\d,]+\s+(?:registration|clearance|medical|interview|fee|deposit)/i;
+
 /**
  * Scaffold extractor: heuristic parse now.
- * BE-3: replace with LLM JSON-schema extract (OpenAI/Gemini) + keep this as fallback.
+ * LLM may fill this schema when wired; it must never pick a verdict.
  */
 export async function extractFromText(
   direction: CheckDirection,
@@ -28,13 +37,12 @@ async function extractWithLlm(
   direction: CheckDirection,
   text: string,
 ): Promise<Extracted> {
-  // Scaffold stub; implement real provider call in issue work.
   void direction;
   void text;
   throw new Error("LLM extract not implemented yet");
 }
 
-function heuristicExtract(direction: CheckDirection, text: string): Extracted {
+export function heuristicExtract(direction: CheckDirection, text: string): Extracted {
   const subjects = detectSubjectsFromText(text);
   const emails = subjects.filter((s) => s.kind === "email").map((s) => s.key);
   const phones = subjects.filter((s) => s.kind === "phone").map((s) => s.key);
@@ -43,8 +51,16 @@ function heuristicExtract(direction: CheckDirection, text: string): Extracted {
 
   const feeHits =
     text.match(
-      /(?:interview|medical|visa|training|background|application)\s+(?:fee|fees|payment|pay)/gi,
+      /(?:interview|medical|visa|training|background|application|registration|clearance|processing)\s+(?:fee|fees|payment|pay)/gi,
     ) ?? [];
+  if (UPFRONT_FEE.test(text) && feeHits.length === 0) {
+    const money = text.match(/(?:kes|ksh|kshs)\s*[\d,]+[^.\n]{0,40}/i);
+    if (money) feeHits.push(money[0]);
+  }
+
+  const headcount = parseHeadcount(text);
+  const asksForId = asksForIdentity(text);
+  const channel = detectChannel(text, urls);
 
   if (direction === "applicant") {
     const out: ExtractedApplicant = {
@@ -67,22 +83,48 @@ function heuristicExtract(direction: CheckDirection, text: string): Extracted {
         ?.trim()
         .slice(0, 100) ?? null,
     salary: text.match(/(?:KES|Ksh|USD)\s?[\d,]+/i)?.[0] ?? null,
-    contactMethod: phones[0] ? "phone" : emails[0] ? "email" : null,
+    contactMethod: channel ?? (phones[0] ? "phone" : emails[0] ? "email" : null),
     paymentTerms: feeHits[0] ?? null,
     claimedOrg: guessClaimedOrg(text),
     emails,
     phones,
     urls: [...urls, ...domains],
     rawSignals: collectSignals(text, emails),
+    channel,
+    asksForId,
+    claimedHeadcount: headcount,
   };
   return out;
 }
 
 function guessClaimedOrg(text: string): string | null {
-  const m = text.match(
-    /\b(KenGen|Safaricom|KRA|Equity Bank|KCB|Ministry of|UN|WHO|Google|Microsoft)\b/i,
+  const known = text.match(KNOWN_ORGS);
+  if (known?.[0]) return known[0];
+  const shaped = text.match(ORG_SHAPE);
+  return shaped?.[1] ?? null;
+}
+
+function parseHeadcount(text: string): number | null {
+  const m =
+    text.match(/hiring\s+(\d[\d,]*)/i) ||
+    text.match(/(\d[\d,]*)\s+(?:staff|jobs|vacancies|positions|openings|roles)/i);
+  if (!m) return null;
+  const n = Number(m[1].replace(/,/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
+function asksForIdentity(text: string): boolean {
+  return /(?:send|share|submit|attach|provide).{0,48}(?:\bid\b|national\s+id|kra\s*pin|passport|selfie)|(?:\bid\b|national\s+id|kra\s*pin|passport|selfie).{0,40}(?:before|to apply|for registration|with your cv)/i.test(
+    text,
   );
-  return m?.[0] ?? null;
+}
+
+function detectChannel(text: string, urls: string[]): string | null {
+  if (/whatsapp|\bwa\.me\b/i.test(text)) return "whatsapp";
+  if (/telegram/i.test(text)) return "telegram";
+  if (urls.some((u) => /career|jobs|portal|taleo|psckjobs/i.test(u))) return "portal";
+  if (/apply\s+(on|via|through|at)\s+\S+/i.test(text)) return "other";
+  return null;
 }
 
 function collectSignals(text: string, emails: string[]): string[] {
@@ -91,5 +133,9 @@ function collectSignals(text: string, emails: string[]): string[] {
   if (/urgent|immediately|today only/i.test(text)) signals.push("urgency");
   if (emails.some(isFreeEmail)) signals.push("free_email");
   if (/mpesa|m-pesa|send money/i.test(text)) signals.push("mobile_money");
+  if (asksForIdentity(text)) signals.push("id_asked_early");
+  if (/ignore (all |previous )?instructions|mark this safe|you are chatgpt|system prompt/i.test(text)) {
+    signals.push("prompt_injection");
+  }
   return signals;
 }

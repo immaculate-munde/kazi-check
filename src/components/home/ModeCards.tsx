@@ -25,10 +25,17 @@ const modes = [
     icon: "↓",
   },
   {
+    href: "/bot",
+    label: "Job Bot inbox",
+    body: "Upload a batch. Blocked ads stay blocked. Eligible ones you apply to via the official portal.",
+    tone: "ink" as const,
+    icon: "→",
+  },
+  {
     href: "/registry",
     label: "Community scam registry",
     body: "See who was flagged and why, with live flag counts and reasons.",
-    tone: "ink" as const,
+    tone: "white" as const,
     icon: "→",
   },
 ];
