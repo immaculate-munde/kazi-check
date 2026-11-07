@@ -43,6 +43,8 @@ export async function runCheckPipeline(input: {
     community.count,
     rawText,
     community.reasons,
+    community.status,
+    community.published,
   );
 
   const listing = matchOfficialListing(extracted, rawText);

@@ -7,7 +7,7 @@ import type {
 import { detectSubjectsFromText, isFreeEmail } from "@/lib/subjects/normalize";
 
 const KNOWN_ORGS =
-  /\b(KenGen|Safaricom|KRA|Kenya Revenue Authority|Equity Bank|KCB|Kenya Railways|KNEC|Kenya National Examinations Council|Central Bank of Kenya|CBK|Public Service Commission|PSC|Ministry of [\w\s]+|UN|WHO|Google|Microsoft)\b/i;
+  /\b(KenGen|Safaricom|KRA|Kenya Revenue Authority|Equity Bank|KCB|Kenya Railways|KNEC|Kenya National Examinations Council|Central Bank of Kenya|CBK|Public Service Commission|PSC|Kenya Defence Forces|KDF|Ministry of Defence|Ministry of [\w\s]+|UN|WHO|Google|Microsoft)\b/i;
 
 const ORG_SHAPE =
   /\b([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,4}\s+(?:Authority|Commission|Corporation|Council|PLC))\b/;

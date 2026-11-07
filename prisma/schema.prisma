@@ -21,6 +21,17 @@ enum SubjectKind {
   email
 }
 
+enum RegistryStatus {
+  unverified
+  under_investigation
+  confirmed
+}
+
+enum OrgReviewStatus {
+  verified
+  needs_review
+}
+
 model Check {
   id                 String         @id @default(cuid())
   direction          CheckDirection
@@ -32,6 +43,7 @@ model Check {
   riskBand           String         @default("LOW")
   recommendedAction  String         @default("")
   extracted          Json
+  findings           Json           @default("[]")
   gaps               Json           @default("[]")
   confirmYourself    Json           @default("[]")
   officialListing    Json?
@@ -63,6 +75,8 @@ model Subject {
   flagCount     Int             @default(0)
   summary       String          @default("")
   lastFlaggedAt DateTime?
+  status        RegistryStatus  @default(unverified)
+  isPublished   Boolean         @default(false)
   createdAt     DateTime        @default(now())
   flags         Flag[]
   checks        CheckSubject[]
@@ -106,4 +120,35 @@ model Impersonation {
   createdAt      DateTime @default(now())
 
   @@index([fakePattern])
+}
+
+model Organisation {
+  id                 String              @id @default(cuid())
+  name               String              @unique
+  aliases            Json                @default("[]")
+  category           String              @default("private")
+  officialWebsite    String?
+  careersUrl         String
+  officialDomain     String
+  officialApplyRoute String              @default("portal")
+  applyUrl           String
+  emailDomain        String
+  listingTitle       String
+  listingUrl         String
+  dateIndexed        DateTime            @default(now())
+  chargesFee         Boolean             @default(false)
+  reviewStatus       OrgReviewStatus     @default(needs_review)
+  domains            OrganisationDomain[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model OrganisationDomain {
+  id             String       @id @default(cuid())
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  domain         String       @unique
+  isEmailDomain  Boolean      @default(true)
+
+  @@index([organisationId])
 }

@@ -14,6 +14,8 @@ export const MOCK_SEED_SUBJECTS: RegistrySubject[] = [
       "Lookalike KenGen domain",
       "Used Gmail while claiming KenGen HR",
     ],
+    status: "confirmed",
+    isPublished: true,
     recentFlags: [
       {
         reason: "Asked for interview fee via M-Pesa",
@@ -43,6 +45,8 @@ export const MOCK_SEED_SUBJECTS: RegistrySubject[] = [
         createdAt: "2026-11-06T09:00:00.000Z",
       },
     ],
+    status: "confirmed",
+    isPublished: true,
   },
   {
     id: "sub_gmail_applicant",
@@ -62,6 +66,8 @@ export const MOCK_SEED_SUBJECTS: RegistrySubject[] = [
         createdAt: "2026-11-04T11:00:00.000Z",
       },
     ],
+    status: "confirmed",
+    isPublished: true,
   },
   {
     id: "sub_phone",
@@ -78,5 +84,7 @@ export const MOCK_SEED_SUBJECTS: RegistrySubject[] = [
         createdAt: "2026-11-03T16:00:00.000Z",
       },
     ],
+    status: "confirmed",
+    isPublished: true,
   },
 ];

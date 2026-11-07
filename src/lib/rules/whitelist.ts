@@ -6,6 +6,7 @@ export const DOMAIN_WHITELIST: Record<string, string> = {
   "equitybank.co.ke": "Equity Bank",
   "kcbgroup.com": "KCB",
   "centralbank.go.ke": "Central Bank of Kenya",
+  "mod.go.ke": "Kenya Defence Forces",
 };
 
 /** Known lookalike / impersonation patterns → official domain. */
