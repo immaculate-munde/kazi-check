@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import type {
+  BotQueueItem,
   CheckDirection,
   CheckRecord,
   CreateCheckInput,
@@ -7,6 +8,7 @@ import type {
   Extracted,
   FlagInput,
   OfferAnalysisRecord,
+  OfficialListingMatch,
   QuizResult,
   RegistrySubject,
   SkillMatchRecord,
@@ -32,6 +34,7 @@ type MemoryDb = {
   quizzes: Map<string, QuizResult>;
   offers: Map<string, OfferAnalysisRecord>;
   tracker: Map<string, TrackerItem>;
+  botQueue: Map<string, BotQueueItem>;
 };
 
 const globalStore = globalThis as unknown as { __kcStore?: MemoryDb };
@@ -56,7 +59,11 @@ function db(): MemoryDb {
       quizzes: new Map(),
       offers: new Map(),
       tracker: new Map(),
+      botQueue: new Map(),
     };
+  }
+  if (!globalStore.__kcStore.botQueue) {
+    globalStore.__kcStore.botQueue = new Map();
   }
   return globalStore.__kcStore;
 }
@@ -134,6 +141,10 @@ export function memoryCreateCheck(input: {
   extracted: Extracted;
   evidence: EvidenceItem[];
   subjects: SubjectRef[];
+  gaps: string[];
+  confirmYourself: string[];
+  officialListing?: OfficialListingMatch;
+  notifyPhone?: string | null;
 }): CheckRecord {
   const record: CheckRecord = {
     id: `chk_${randomUUID().slice(0, 10)}`,
@@ -148,6 +159,11 @@ export function memoryCreateCheck(input: {
     extracted: input.extracted,
     evidence: input.evidence,
     subjects: input.subjects,
+    gaps: input.gaps,
+    confirmYourself: input.confirmYourself,
+    officialListing: input.officialListing,
+    notifyPhone: input.notifyPhone ?? null,
+    retroAlertedAt: null,
     createdAt: new Date().toISOString(),
   };
   db().checks.set(record.id, record);
@@ -156,6 +172,23 @@ export function memoryCreateCheck(input: {
 
 export function memoryGetCheck(id: string): CheckRecord | null {
   return db().checks.get(id) ?? null;
+}
+
+export function memoryListChecks(): CheckRecord[] {
+  return [...db().checks.values()].sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
+}
+
+export function memoryUpdateCheck(
+  id: string,
+  patch: Partial<CheckRecord>,
+): CheckRecord | null {
+  const existing = db().checks.get(id);
+  if (!existing) return null;
+  const next = { ...existing, ...patch };
+  db().checks.set(id, next);
+  return next;
 }
 
 export function memoryListRegistry(
@@ -319,6 +352,21 @@ export function memoryUpsertTracker(
 
 export function memoryDeleteTracker(id: string) {
   return db().tracker.delete(id);
+}
+
+export function memorySaveBotItem(item: BotQueueItem) {
+  db().botQueue.set(item.id, item);
+  return item;
+}
+
+export function memoryGetBotItem(id: string) {
+  return db().botQueue.get(id) ?? null;
+}
+
+export function memoryListBotQueue(): BotQueueItem[] {
+  return [...db().botQueue.values()].sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
 }
 
 export type { CreateCheckInput };

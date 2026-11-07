@@ -144,19 +144,9 @@ export function analyzeOfferLetter(rawText: string): OfferAnalysisRecord {
   }
 
   const combined = [...redFlags];
-  const score01 = Math.min(
-    1,
-    redFlags.filter((r) => r.severity === "high").length * 0.35 +
-      redFlags.filter((r) => r.severity === "medium").length * 0.2,
-  );
-  const riskScore = toRiskScore(score01, combined);
+  const riskScore = toRiskScore(jobRules.score, combined);
   const riskBand = scoreToRiskBand(riskScore, combined.length + greenFlags.length);
-  const verdict =
-    riskBand === "HIGH"
-      ? "DO_NOT_PROCEED"
-      : riskBand === "SUSPICIOUS" || riskBand === "MODERATE"
-        ? "CAUTION"
-        : "PROCEED";
+  const verdict = jobRules.verdict;
 
   const questions = [
     "Can you confirm that this offer was issued by your HR department?",
@@ -169,7 +159,7 @@ export function analyzeOfferLetter(rawText: string): OfferAnalysisRecord {
   const employer = extracted.employer ?? "Hiring team";
   const emailDraft = {
     subject: `Clarification request regarding employment offer${extracted.jobTitle ? ` - ${extracted.jobTitle}` : ""}`,
-    body: `Dear ${employer} team,\n\nThank you for the employment offer. Before I proceed, I would appreciate clarification on the following:\n\n${questions
+    body: `Dear ${employer} team,\n\nThank you for the employment offer. Before I continue, I would appreciate clarification on the following:\n\n${questions
       .map((q, i) => `${i + 1}. ${q}`)
       .join("\n")}\n\nPlease confirm the official channel I should use for verification.\n\nKind regards`,
   };

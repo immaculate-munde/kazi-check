@@ -1,54 +1,42 @@
-import type { EvidenceItem, RiskBand, Verdict, CheckDirection } from "@/lib/types";
+import type { EvidenceItem, RiskBand, Verdict } from "@/lib/types";
+import { DEFAULT_CONFIRM_YOURSELF } from "@/lib/verdict";
 
 export function scoreToRiskBand(riskScore: number, evidenceCount: number): RiskBand {
   if (evidenceCount === 0 && riskScore < 15) return "INSUFFICIENT_INFORMATION";
-  if (riskScore <= 24) return "LOW";
-  if (riskScore <= 49) return "MODERATE";
-  if (riskScore <= 74) return "SUSPICIOUS";
+  if (riskScore < 30) return "LOW";
+  if (riskScore < 60) return "MODERATE";
   return "HIGH";
 }
 
-export function recommendedAction(band: RiskBand): string {
-  switch (band) {
-    case "LOW":
-      return "Proceed cautiously. Absence of red flags is not proof of legitimacy.";
-    case "MODERATE":
-      return "Investigate unresolved details before applying or sharing documents.";
-    case "SUSPICIOUS":
-      return "Avoid payment and sensitive disclosures. Consider flagging this recruiter.";
-    case "HIGH":
-      return "Strong warning. Do not proceed until independently verified.";
-    case "INSUFFICIENT_INFORMATION":
-      return "Not enough evidence yet. Add more advert text, a URL, or contact details.";
+export function recommendedAction(verdict: Verdict): string {
+  switch (verdict) {
+    case "SCAM":
+      return "Do not pay, do not send documents, and report this recruiter. Check the organisation's official site.";
+    case "HIGH_RISK":
+      return "Do not pay or share ID documents. Verify on the official careers page, then report if it still looks wrong.";
+    case "CAUTION":
+      return "Confirm each gap below before you apply or share documents.";
+    case "UNSURE":
+      return "Not enough to judge. Add more advert text, a screenshot of the full message, or an official URL.";
+    case "NO_RED_FLAGS":
+      return "No red flags found on current checks. Confirm the role yourself on the official careers page.";
   }
 }
 
-/** Convert 0-1 engine score + evidence into 0-100 risk score. */
-export function toRiskScore(score01: number, evidence: EvidenceItem[]): number {
-  let points = Math.round(score01 * 100);
-  for (const e of evidence) {
-    if (e.severity === "high") points = Math.max(points, points);
+export function confirmYourselfList(verdict: Verdict): string[] {
+  if (verdict === "NO_RED_FLAGS" || verdict === "CAUTION" || verdict === "UNSURE") {
+    return DEFAULT_CONFIRM_YOURSELF;
   }
-  return Math.max(0, Math.min(100, points));
+  return [
+    "Do not pay.",
+    "Check the organisation's official careers page.",
+    "Report this to the community registry.",
+  ];
 }
 
-export function verdictFromBand(
-  direction: CheckDirection,
-  band: RiskBand,
-): Verdict {
-  if (direction === "applicant") {
-    if (band === "HIGH") return "HIGH_RISK";
-    if (band === "SUSPICIOUS" || band === "MODERATE") return "SUSPICIOUS";
-    return "CREDIBLE";
-  }
-  if (direction === "offer_letter") {
-    if (band === "HIGH") return "DO_NOT_PROCEED";
-    if (band === "SUSPICIOUS" || band === "MODERATE") return "CAUTION";
-    return "PROCEED";
-  }
-  if (band === "HIGH") return "SCAM";
-  if (band === "SUSPICIOUS" || band === "MODERATE") return "SUSPICIOUS";
-  return "SAFE";
+/** Points are already 0-100 from the rules table. */
+export function toRiskScore(score: number, _evidence: EvidenceItem[]): number {
+  return Math.max(0, Math.min(100, Math.round(score)));
 }
 
 export function stampEvidence(evidence: EvidenceItem[]): EvidenceItem[] {
