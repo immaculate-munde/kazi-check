@@ -4,6 +4,7 @@ import type {
   CheckRecord,
   EvidenceItem,
   Extracted,
+  Finding,
   FlagInput,
   OfficialListingMatch,
   RegistrySubject,
@@ -46,6 +47,7 @@ export type CreateCheckStoreInput = {
   recommendedAction: string;
   extracted: Extracted;
   evidence: EvidenceItem[];
+  findings?: Finding[];
   subjects: SubjectRef[];
   gaps: string[];
   confirmYourself: string[];

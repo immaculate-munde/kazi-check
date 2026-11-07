@@ -136,6 +136,61 @@ describe("official listings", () => {
     const match = matchOfficialListing(extracted, text);
     expect(match.result).toBe("NO_LISTING_INDEXED");
   });
+
+  it("finds Kenya Defence Forces in the organisation directory", () => {
+    const text =
+      "Congratulations, you have been shortlisted for KDF recruitment. Pay KSh 3,500 processing fee via M-Pesa to secure your slot before Friday.";
+    const extracted = heuristicExtract("job_offer", text);
+    expect(extracted && "claimedOrg" in extracted ? extracted.claimedOrg : null).toMatch(
+      /KDF|Kenya Defence Forces/i,
+    );
+    const match = matchOfficialListing(extracted, text);
+    expect(match.listing?.orgName).toBe("Kenya Defence Forces");
+    expect(match.result).not.toBe("ROUTE_MISMATCH");
+  });
+});
+
+describe("registry status", () => {
+  const feeExtracted = heuristicExtract(
+    "job_offer",
+    "Pay KSh 1500 registration for a clerk role at Sunrise Tea. Email hr@sunrisetea.co.ke",
+  );
+  const feeText =
+    "Pay KSh 1500 registration for a clerk role at Sunrise Tea. Email hr@sunrisetea.co.ke";
+
+  it("does not stamp SCAM from unpublished or unverified flags", () => {
+    const unpublished = runRules("job_offer", feeExtracted, 9, feeText, ["rumor"], "unverified", false);
+    expect(unpublished.evidence.some((e) => e.ruleId === "community_flags")).toBe(false);
+    expect(unpublished.verdict).not.toBe("SCAM");
+  });
+
+  it("investigating flags add points but do not stack SCAM with a fee", () => {
+    const investigating = runRules(
+      "job_offer",
+      feeExtracted,
+      9,
+      feeText,
+      ["under review"],
+      "under_investigation",
+      true,
+    );
+    expect(investigating.evidence.some((e) => e.ruleId === "community_flags")).toBe(true);
+    expect(investigating.evidence.find((e) => e.ruleId === "community_flags")?.points).toBe(20);
+    expect(investigating.verdict).not.toBe("SCAM");
+  });
+
+  it("confirmed flags plus a fee still stack to SCAM", () => {
+    const confirmed = runRules(
+      "job_offer",
+      feeExtracted,
+      9,
+      feeText,
+      ["Asked for interview fee via M-Pesa"],
+      "confirmed",
+      true,
+    );
+    expect(confirmed.verdict).toBe("SCAM");
+  });
 });
 
 describe("PII masking", () => {

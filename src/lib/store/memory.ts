@@ -11,6 +11,7 @@ import type {
   Finding,
   OfficialListingMatch,
   QuizResult,
+  RegistryStatus,
   RegistrySubject,
   SkillMatchRecord,
   SubjectKind,
@@ -80,6 +81,8 @@ function ensureStore(): MemoryDb {
 
   for (const [id, row] of existing.subjects) {
     row.flags ??= [];
+    row.status ??= "unverified";
+    row.isPublished ??= false;
     row.topReasons ??= aggregateReasons(row.flags);
     row.recentFlags ??= row.flags
       .slice()
@@ -110,6 +113,8 @@ function toPublicSubject(row: SubjectRow): RegistrySubject {
     flagCount: row.flagCount ?? flags.length,
     summary: row.summary ?? "",
     lastFlaggedAt: row.lastFlaggedAt,
+    status: row.status ?? "unverified",
+    isPublished: row.isPublished ?? false,
     topReasons,
     recentFlags: flags
       .slice()
@@ -137,6 +142,8 @@ export function memoryGetOrCreateSubject(
     flagCount: 0,
     summary,
     lastFlaggedAt: null,
+    status: "unverified",
+    isPublished: false,
     topReasons: [],
     recentFlags: [],
     flags: [],
@@ -156,7 +163,7 @@ export function memoryCreateCheck(input: {
   recommendedAction: string;
   extracted: Extracted;
   evidence: EvidenceItem[];
-  findings: Finding[];
+  findings?: Finding[];
   subjects: SubjectRef[];
   gaps: string[];
   confirmYourself: string[];
@@ -175,7 +182,7 @@ export function memoryCreateCheck(input: {
     recommendedAction: input.recommendedAction,
     extracted: input.extracted,
     evidence: input.evidence,
-    findings: input.findings,
+    findings: input.findings ?? [],
     subjects: input.subjects,
     gaps: input.gaps,
     confirmYourself: input.confirmYourself,
@@ -292,23 +299,40 @@ export function memoryAddFlag(input: FlagInput): {
   };
 }
 
+function statusRank(status: RegistryStatus | undefined): number {
+  if (status === "confirmed") return 2;
+  if (status === "under_investigation") return 1;
+  return 0;
+}
+
 export function memoryLookupFlagCounts(
   pairs: { kind: SubjectKind; key: string }[],
-): { count: number; reasons: string[] } {
+): {
+  count: number;
+  reasons: string[];
+  status: RegistryStatus;
+  published: boolean;
+} {
   const store = db();
   let max = 0;
   let reasons: string[] = [];
+  let status: RegistryStatus = "unverified";
+  let published = false;
   for (const p of pairs) {
     for (const s of store.subjects.values()) {
-      if (s.kind === p.kind && s.key === p.key) {
-        if (s.flagCount > max) {
-          max = s.flagCount;
-          reasons = aggregateReasons(s.flags);
-        }
+      if (s.kind !== p.kind || s.key !== p.key) continue;
+      if (!s.isPublished) continue;
+      published = true;
+      if (s.flagCount > max) {
+        max = s.flagCount;
+        reasons = aggregateReasons(s.flags);
+      }
+      if (statusRank(s.status) > statusRank(status)) {
+        status = s.status ?? "unverified";
       }
     }
   }
-  return { count: max, reasons };
+  return { count: max, reasons, status, published };
 }
 
 export function memorySaveSkillMatch(record: SkillMatchRecord) {
