@@ -9,7 +9,6 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/immaculate-munde/kazi-check/actions/workflows/build.yml"><img src="https://github.com/immaculate-munde/kazi-check/actions/workflows/build.yml/badge.svg" alt="CI" /></a>
   <img src="https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs" alt="Next.js 16" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/verdicts-never_SAFE-191a23?labelColor=b9ff66" alt="Never SAFE" />
