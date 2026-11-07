@@ -1,45 +1,13 @@
-import { readFileSync } from "fs";
-import path from "path";
 import type { EvidenceItem, Extracted, ExtractedOffer, OfficialListingMatch } from "@/lib/types";
+import {
+  findOrganisation,
+  officialCoverageLabel,
+  type OfficialListing,
+} from "@/lib/orgs/directory";
 
-export type OfficialListing = {
-  orgName: string;
-  aliases: string[];
-  officialDomain: string;
-  officialApplyRoute: "portal" | "email";
-  applyUrl: string;
-  emailDomain: string;
-  listingTitle: string;
-  listingUrl: string;
-  dateIndexed: string;
-  chargesFee: boolean;
-};
-
-let cached: OfficialListing[] | null = null;
-
-export function loadOfficialListings(): OfficialListing[] {
-  if (cached) return cached;
-  const file = path.join(process.cwd(), "data", "official_listings.json");
-  cached = JSON.parse(readFileSync(file, "utf8")) as OfficialListing[];
-  return cached;
-}
-
-export function officialCoverageLabel(): string {
-  const n = loadOfficialListings().length;
-  return `Official listings indexed for ${n} organisations (snapshot, not a live feed).`;
-}
-
-function listingForOrg(org: string | null | undefined): OfficialListing | null {
-  if (!org) return null;
-  const needle = org.trim().toLowerCase();
-  for (const row of loadOfficialListings()) {
-    const names = [row.orgName, ...row.aliases].map((n) => n.toLowerCase());
-    if (names.some((n) => needle === n || needle.includes(n) || n.includes(needle))) {
-      return row;
-    }
-  }
-  return null;
-}
+export type { OfficialListing };
+export { officialCoverageLabel, findOrganisation as listingForOrg };
+export { loadOfficialListings } from "@/lib/orgs/directory";
 
 function adUsesOffPlatform(text: string, extracted: ExtractedOffer): boolean {
   if (/whatsapp|telegram|\bwa\.me\b/i.test(text)) return true;
@@ -77,7 +45,7 @@ export function matchOfficialListing(
           : null;
 
   const offer = extracted as ExtractedOffer;
-  const row = listingForOrg(org ?? null);
+  const row = findOrganisation(org ?? null);
   if (!row) {
     return {
       result: "NO_LISTING_INDEXED",

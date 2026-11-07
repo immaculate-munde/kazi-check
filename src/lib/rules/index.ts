@@ -5,6 +5,7 @@ import type {
   ExtractedApplicant,
   ExtractedOffer,
   Finding,
+  RegistryStatus,
   Verdict,
 } from "@/lib/types";
 import { isFreeEmail } from "@/lib/subjects/normalize";
@@ -35,6 +36,7 @@ const POINTS = {
   implausibleScale: 20,
   governmentWarning: 60,
   registryHit: 50,
+  registryInvestigating: 20,
   officialDomain: -30,
   promptInjection: 20,
   routeMismatch: 30,
@@ -51,24 +53,33 @@ export function runRules(
   communityFlagCount = 0,
   rawText = "",
   communityReasons: string[] = [],
+  registryStatus: RegistryStatus = "confirmed",
+  registryPublished = true,
 ): RulesResult {
   const evidence: EvidenceItem[] =
     direction === "applicant"
       ? applicantRules(extracted as ExtractedApplicant, rawText)
       : offerRules(extracted as ExtractedOffer, rawText);
 
-  if (communityFlagCount > 0) {
+  if (
+    communityFlagCount > 0 &&
+    registryPublished &&
+    registryStatus !== "unverified"
+  ) {
     const reasonText =
       communityReasons.length > 0
         ? ` Reasons: ${communityReasons.slice(0, 3).join("; ")}`
         : "";
+    const confirmed = registryStatus === "confirmed";
     evidence.push({
       ruleId: "community_flags",
-      title: "Identifier already in registry",
-      snippet: `Reported ${communityFlagCount} time${communityFlagCount === 1 ? "" : "s"}.${reasonText}`,
-      severity: communityFlagCount >= 3 ? "high" : "medium",
+      title: confirmed
+        ? "Identifier already in registry"
+        : "Identifier under investigation",
+      snippet: `Reported ${communityFlagCount} time${communityFlagCount === 1 ? "" : "s"} (${registryStatus.replace(/_/g, " ")}).${reasonText}`,
+      severity: confirmed ? (communityFlagCount >= 3 ? "high" : "medium") : "medium",
       sourceType: "community",
-      points: POINTS.registryHit,
+      points: confirmed ? POINTS.registryHit : POINTS.registryInvestigating,
     });
   }
 
@@ -385,7 +396,9 @@ function toVerdict(
   const hasWhatsApp = ids.has("whatsapp_only");
   const hasLookalike = ids.has("impersonation") || ids.has("official_route_mismatch");
   const hasWarning = ids.has("government_warning");
-  const hasRegistry = ids.has("community_flags");
+  const hasRegistry = evidence.some(
+    (e) => e.ruleId === "community_flags" && (e.points ?? 0) >= POINTS.registryHit,
+  );
 
   // Stacked SCAM — earned, not default.
   if (hasFee && hasWhatsApp) return "SCAM";

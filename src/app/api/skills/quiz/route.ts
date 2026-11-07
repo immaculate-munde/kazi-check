@@ -8,7 +8,10 @@ export const instant = false;
 
 export async function GET(request: Request) {
   const domain = new URL(request.url).searchParams.get("domain") ?? undefined;
-  const questions = pickQuiz(domain, 3).map(({ answerIndex: _a, ...q }) => q);
+  const questions = pickQuiz(domain, 3).map(({ answerIndex: _, ...q }) => {
+    void _;
+    return q;
+  });
   return NextResponse.json({ questions });
 }
 

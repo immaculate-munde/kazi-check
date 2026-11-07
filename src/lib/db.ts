@@ -19,6 +19,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 /** True when a DATABASE_URL is configured (Prisma path). Otherwise memory store. */
-export function usePrisma() {
+export function prismaEnabled() {
+  if (process.env.VITEST) return false;
   return Boolean(process.env.DATABASE_URL?.trim());
 }

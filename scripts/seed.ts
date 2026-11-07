@@ -10,6 +10,7 @@ import { config } from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { DOMAIN_WHITELIST, IMPERSONATIONS } from "../src/lib/rules/whitelist";
 import { MOCK_SEED_SUBJECTS } from "../src/lib/store/seed-data";
+import { loadOfficialListings } from "../src/lib/orgs/directory";
 
 config({ override: true });
 
@@ -59,6 +60,8 @@ async function seedPostgres() {
           key: s.key,
           direction: s.direction,
           flagCount: s.flagCount,
+          status: s.status,
+          isPublished: s.isPublished,
           summary: s.summary,
           lastFlaggedAt: s.lastFlaggedAt
             ? new Date(`${s.lastFlaggedAt}T00:00:00.000Z`)
@@ -67,6 +70,8 @@ async function seedPostgres() {
         update: {
           direction: s.direction,
           flagCount: s.flagCount,
+          status: s.status,
+          isPublished: s.isPublished,
           summary: s.summary,
           lastFlaggedAt: s.lastFlaggedAt
             ? new Date(`${s.lastFlaggedAt}T00:00:00.000Z`)
@@ -96,11 +101,61 @@ async function seedPostgres() {
       }
     }
 
+    for (const listing of loadOfficialListings()) {
+      const org = await prisma.organisation.upsert({
+        where: { name: listing.orgName },
+        create: {
+          name: listing.orgName,
+          aliases: listing.aliases,
+          officialWebsite: `https://${listing.officialDomain}`,
+          careersUrl: listing.applyUrl,
+          officialDomain: listing.officialDomain,
+          officialApplyRoute: listing.officialApplyRoute,
+          applyUrl: listing.applyUrl,
+          emailDomain: listing.emailDomain,
+          listingTitle: listing.listingTitle,
+          listingUrl: listing.listingUrl,
+          dateIndexed: new Date(`${listing.dateIndexed}T00:00:00.000Z`),
+          chargesFee: listing.chargesFee,
+          reviewStatus: "verified",
+        },
+        update: {
+          aliases: listing.aliases,
+          careersUrl: listing.applyUrl,
+          officialDomain: listing.officialDomain,
+          applyUrl: listing.applyUrl,
+          emailDomain: listing.emailDomain,
+          listingTitle: listing.listingTitle,
+          listingUrl: listing.listingUrl,
+          chargesFee: listing.chargesFee,
+          reviewStatus: "verified",
+        },
+      });
+
+      const domains = [...new Set([listing.officialDomain, listing.emailDomain])];
+      for (const domain of domains) {
+        await prisma.organisationDomain.upsert({
+          where: { domain },
+          create: {
+            organisationId: org.id,
+            domain,
+            isEmailDomain: domain === listing.emailDomain,
+          },
+          update: {
+            organisationId: org.id,
+            isEmailDomain: domain === listing.emailDomain,
+          },
+        });
+      }
+    }
+
     const counts = {
       whitelist: await prisma.domainWhitelist.count(),
       impersonations: await prisma.impersonation.count(),
       subjects: await prisma.subject.count(),
       flags: await prisma.flag.count(),
+      organisations: await prisma.organisation.count(),
+      orgDomains: await prisma.organisationDomain.count(),
     };
 
     console.log("Seeded Postgres:");
@@ -108,6 +163,8 @@ async function seedPostgres() {
     console.log(`  impersonation patterns: ${counts.impersonations}`);
     console.log(`  subjects: ${counts.subjects}`);
     console.log(`  flags: ${counts.flags}`);
+    console.log(`  organisations: ${counts.organisations}`);
+    console.log(`  organisation domains: ${counts.orgDomains}`);
   } finally {
     await prisma.$disconnect();
   }

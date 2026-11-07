@@ -8,7 +8,7 @@ import { extractWithLlm, isLlmConfigured } from "@/lib/extract/llm";
 import { detectSubjectsFromText, isFreeEmail } from "@/lib/subjects/normalize";
 
 const KNOWN_ORGS =
-  /\b(KenGen|Safaricom|KRA|Kenya Revenue Authority|Equity Bank|KCB|Kenya Railways|KNEC|Kenya National Examinations Council|Central Bank of Kenya|CBK|Public Service Commission|PSC|Ministry of [\w\s]+|UN|WHO|Google|Microsoft)\b/i;
+  /\b(KenGen|Safaricom|KRA|Kenya Revenue Authority|Equity Bank|KCB|Kenya Railways|KNEC|Kenya National Examinations Council|Central Bank of Kenya|CBK|Public Service Commission|PSC|Kenya Defence Forces|KDF|Ministry of Defence|Ministry of [\w\s]+|UN|WHO|Google|Microsoft)\b/i;
 
 const ORG_SHAPE =
   /\b([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+){0,4}\s+(?:Authority|Commission|Corporation|Council|PLC))\b/;
@@ -43,7 +43,7 @@ export function heuristicExtract(direction: CheckDirection, text: string): Extra
   const domains = subjects.filter((s) => s.kind === "domain").map((s) => s.key);
   const urls = (text.match(/https?:\/\/\S+/gi) ?? []).map((u) => u.replace(/[),.;]+$/, ""));
 
-  const feeHits =
+  const feeHits: string[] =
     text.match(
       /(?:interview|medical|visa|training|background|application|registration|clearance|processing)\s+(?:fee|fees|payment|pay)/gi,
     ) ?? [];

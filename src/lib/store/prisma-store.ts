@@ -3,8 +3,10 @@ import type {
   CheckRecord,
   EvidenceItem,
   Extracted,
+  Finding,
   FlagInput,
   OfficialListingMatch,
+  RegistryStatus,
   RegistrySubject,
   RiskBand,
   SubjectKind,
@@ -39,6 +41,8 @@ function mapSubject(row: {
   flagCount: number;
   summary: string;
   lastFlaggedAt: Date | null;
+  status?: RegistryStatus | string;
+  isPublished?: boolean;
   flags: { reason: string | null; createdAt: Date }[];
 }): RegistrySubject {
   const flagPayload = row.flags.map((f) => ({
@@ -53,6 +57,8 @@ function mapSubject(row: {
     flagCount: row.flagCount,
     summary: row.summary,
     lastFlaggedAt: dateToIsoDay(row.lastFlaggedAt),
+    status: (row.status as RegistryStatus) ?? "unverified",
+    isPublished: row.isPublished ?? false,
     topReasons: aggregateReasons(flagPayload),
     recentFlags: flagPayload
       .slice()
@@ -121,6 +127,7 @@ export async function prismaCreateCheck(input: {
   recommendedAction: string;
   extracted: Extracted;
   evidence: EvidenceItem[];
+  findings?: Finding[];
   subjects: SubjectRef[];
   gaps: string[];
   confirmYourself: string[];
@@ -138,6 +145,7 @@ export async function prismaCreateCheck(input: {
       riskBand: input.riskBand,
       recommendedAction: input.recommendedAction,
       extracted: input.extracted as object,
+      findings: input.findings ?? [],
       gaps: input.gaps,
       confirmYourself: input.confirmYourself,
       officialListing: input.officialListing
@@ -181,6 +189,7 @@ function mapCheck(check: {
   riskBand: string;
   recommendedAction: string;
   extracted: unknown;
+  findings?: unknown;
   gaps: unknown;
   confirmYourself: unknown;
   officialListing: unknown;
@@ -217,6 +226,7 @@ function mapCheck(check: {
     riskBand: check.riskBand as RiskBand,
     recommendedAction: check.recommendedAction,
     extracted: check.extracted as Extracted,
+    findings: (check.findings as Finding[]) ?? [],
     evidence: check.evidence.map((e) => ({
       ruleId: e.ruleId,
       title: e.title,
@@ -410,13 +420,27 @@ export async function prismaAddFlag(input: FlagInput): Promise<{
   };
 }
 
+function statusRank(status: RegistryStatus | string | undefined): number {
+  if (status === "confirmed") return 2;
+  if (status === "under_investigation") return 1;
+  return 0;
+}
+
 export async function prismaLookupFlagCounts(
   pairs: { kind: SubjectKind; key: string }[],
-): Promise<{ count: number; reasons: string[] }> {
-  if (pairs.length === 0) return { count: 0, reasons: [] };
+): Promise<{
+  count: number;
+  reasons: string[];
+  status: RegistryStatus;
+  published: boolean;
+}> {
+  if (pairs.length === 0) {
+    return { count: 0, reasons: [], status: "unverified", published: false };
+  }
 
   const rows = await prisma.subject.findMany({
     where: {
+      isPublished: true,
       OR: pairs.map((p) => ({
         kind: toSubjectKind(p.kind),
         key: p.key,
@@ -427,11 +451,15 @@ export async function prismaLookupFlagCounts(
 
   let max = 0;
   let reasons: string[] = [];
+  let status: RegistryStatus = "unverified";
   for (const s of rows) {
     if (s.flagCount > max) {
       max = s.flagCount;
       reasons = aggregateReasons(s.flags);
     }
+    if (statusRank(s.status) > statusRank(status)) {
+      status = s.status as RegistryStatus;
+    }
   }
-  return { count: max, reasons };
+  return { count: max, reasons, status, published: rows.length > 0 };
 }
