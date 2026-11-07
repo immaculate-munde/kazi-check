@@ -13,39 +13,89 @@ type Q = {
   explanation?: string;
 };
 
+type QuizResultView = {
+  score: number;
+  total: number;
+  feedback: string[];
+};
+
 export default function QuizPage() {
   const [domain, setDomain] = useState("ICT Support");
   const [questions, setQuestions] = useState<Q[]>([]);
   const [answers, setAnswers] = useState<Record<string, number>>({});
-  const [result, setResult] = useState<{
-    score: number;
-    total: number;
-    feedback: string[];
-  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<QuizResultView | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setResult(null);
     fetch(`/api/skills/quiz?domain=${encodeURIComponent(domain)}`)
-      .then((r) => r.json())
-      .then((d) => {
-        setQuestions(d.questions ?? []);
-        setAnswers({});
-        setResult(null);
+      .then(async (r) => {
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error ?? "Could not load quiz");
+        if (!cancelled) {
+          setQuestions(Array.isArray(data.questions) ? data.questions : []);
+          setAnswers({});
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setQuestions([]);
+          setError(err instanceof Error ? err.message : "Could not load quiz");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [domain]);
 
   async function submit() {
-    const res = await fetch("/api/skills/quiz", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        domain,
-        answers: questions.map((q) => ({
-          questionId: q.id,
-          selectedIndex: answers[q.id] ?? -1,
-        })),
-      }),
-    });
-    setResult(await res.json());
+    setError(null);
+    if (questions.length === 0) {
+      setError("No questions loaded. Pick a domain again or refresh.");
+      return;
+    }
+    const unanswered = questions.filter((q) => answers[q.id] === undefined);
+    if (unanswered.length > 0) {
+      setError(`Answer all questions before submitting (${unanswered.length} left).`);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/skills/quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          domain,
+          answers: questions.map((q) => ({
+            questionId: q.id,
+            selectedIndex: answers[q.id] ?? -1,
+          })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? "Submit failed");
+      }
+      setResult({
+        score: data.score ?? 0,
+        total: data.total ?? questions.length,
+        feedback: Array.isArray(data.feedback) ? data.feedback : [],
+      });
+    } catch (err) {
+      setResult(null);
+      setError(err instanceof Error ? err.message : "Submit failed");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -57,23 +107,33 @@ export default function QuizPage() {
       </p>
 
       <div className="mt-6 flex flex-wrap gap-2">
-        {["ICT Support", "Networking", "Cybersecurity", "Software Development", "Human Resources"].map(
-          (d) => (
-            <button
-              key={d}
-              type="button"
-              onClick={() => setDomain(d)}
-              className={`rounded-full border-2 border-kc-ink px-4 py-2 text-sm ${
-                domain === d ? "bg-kc-lime text-[#191a23]" : "bg-kc-white"
-              }`}
-            >
-              {d}
-            </button>
-          ),
-        )}
+        {[
+          "ICT Support",
+          "Networking",
+          "Cybersecurity",
+          "Software Development",
+          "Human Resources",
+        ].map((d) => (
+          <button
+            key={d}
+            type="button"
+            onClick={() => setDomain(d)}
+            className={`rounded-full border-2 border-kc-ink px-4 py-2 text-sm ${
+              domain === d ? "bg-kc-lime text-[#191a23]" : "bg-kc-white"
+            }`}
+          >
+            {d}
+          </button>
+        ))}
       </div>
 
       <BrutalCard className="mt-8 space-y-6" tone="muted">
+        {loading ? <p className="text-sm text-kc-ink/70">Loading questions…</p> : null}
+        {!loading && questions.length === 0 ? (
+          <p className="text-sm text-red-600">
+            No questions available for this domain. Try another domain.
+          </p>
+        ) : null}
         {questions.map((q, idx) => (
           <div key={q.id}>
             <p className="font-medium">
@@ -82,7 +142,7 @@ export default function QuizPage() {
             <div className="mt-3 space-y-2">
               {q.options.map((opt, i) => (
                 <label
-                  key={opt}
+                  key={`${q.id}-${i}`}
                   className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-kc-ink bg-kc-white px-3 py-2"
                 >
                   <input
@@ -97,8 +157,14 @@ export default function QuizPage() {
             </div>
           </div>
         ))}
-        <Button variant="solid" onClick={submit}>
-          Submit quiz
+        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        <Button
+          type="button"
+          variant="solid"
+          onClick={submit}
+          disabled={submitting || loading || questions.length === 0}
+        >
+          {submitting ? "Submitting…" : "Submit quiz"}
         </Button>
       </BrutalCard>
 
@@ -108,13 +174,26 @@ export default function QuizPage() {
             Score {result.score}/{result.total}
           </h2>
           <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-[#191a23]/80">
-            {result.feedback.map((f) => (
-              <li key={f}>{f}</li>
+            {result.feedback.map((f, i) => (
+              <li key={`${i}-${f.slice(0, 24)}`}>{f}</li>
             ))}
           </ul>
-          <Button href="/skills" className="mt-6" variant="outline">
-            Back to skill match
-          </Button>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button href="/skills" variant="outline">
+              Back to skill match
+            </Button>
+            <Button
+              type="button"
+              variant="solid"
+              onClick={() => {
+                setResult(null);
+                setAnswers({});
+                setError(null);
+              }}
+            >
+              Retake quiz
+            </Button>
+          </div>
         </BrutalCard>
       ) : null}
     </div>

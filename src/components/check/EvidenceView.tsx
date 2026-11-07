@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
 import { FlagCountPill } from "@/components/ui/FlagCountPill";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { trackerPrefillHref } from "@/lib/tracker/query";
 import type { CheckRecord } from "@/lib/types";
+import { displayVerdict } from "@/lib/verdict";
 
 const FLAG_REASONS = [
   "Asked for interview / application fee",
@@ -16,6 +19,7 @@ const FLAG_REASONS = [
 ];
 
 export function EvidenceView({ checkId }: { checkId: string }) {
+  const router = useRouter();
   const [check, setCheck] = useState<CheckRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -114,23 +118,28 @@ export function EvidenceView({ checkId }: { checkId: string }) {
     else setSmsStatus("failed");
   }
 
-  async function saveToTracker() {
+  function saveToTracker() {
     if (!check) return;
-    const extracted = check.extracted as { claimedOrg?: string; jobTitle?: string };
-    await fetch("/api/tracker", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: extracted.jobTitle || "Checked opportunity",
-        employer: extracted.claimedOrg || "Unknown employer",
-        source: "pre-application check",
-        verificationResult: `${check.verdict} (${check.riskScore}/100)`,
-        checkId: check.id,
-        status: "saved",
-        notes: check.recommendedAction,
-      }),
-    });
+    const extracted = check.extracted as {
+      claimedOrg?: string | null;
+      jobTitle?: string | null;
+      employer?: string | null;
+    };
+    const title = extracted.jobTitle || "Checked opportunity";
+    const employer =
+      extracted.claimedOrg || extracted.employer || "Unknown employer";
     setSavedTracker(true);
+    router.push(
+      trackerPrefillHref({
+        title,
+        employer,
+        notes: check.recommendedAction,
+        checkId: check.id,
+        verificationResult: `${check.verdict} (${check.riskScore}/100)`,
+        source: "pre-application check",
+        autosave: true,
+      }),
+    );
   }
 
   if (loading) {
@@ -162,14 +171,14 @@ export function EvidenceView({ checkId }: { checkId: string }) {
           Check {check.id} ·{" "}
           {check.direction === "applicant" ? "Applicant" : "Job offer"}
         </p>
-        <h1 className="mt-2 text-4xl font-medium">{check.verdict}</h1>
+        <h1 className="mt-2 text-4xl font-medium">{displayVerdict(check.verdict)}</h1>
         <p className="mt-3 text-kc-ink/75">
           Risk score {check.riskScore}/100 · {check.riskBand.replaceAll("_", " ")} ·{" "}
           {check.evidence.length} evidence item
           {check.evidence.length === 1 ? "" : "s"}
         </p>
         <p className="mt-4 rounded-2xl border-2 border-kc-ink bg-kc-lime/40 px-4 py-3 text-sm text-[#191a23]">
-          <strong>Recommended action:</strong> {check.recommendedAction}
+          <strong>Next step:</strong> {check.recommendedAction}
         </p>
 
         {topReasons.length > 0 ? (
@@ -188,10 +197,37 @@ export function EvidenceView({ checkId }: { checkId: string }) {
           </div>
         ) : null}
 
+        {check.gaps?.length ? (
+          <div className="mt-6">
+            <p className="text-sm font-medium">Gaps (could not check)</p>
+            <ul className="mt-2 space-y-2">
+              {check.gaps.map((g) => (
+                <li
+                  key={g}
+                  className="rounded-xl border-2 border-kc-ink bg-kc-muted px-3 py-2 text-sm"
+                >
+                  {g}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {check.confirmYourself?.length ? (
+          <div className="mt-6">
+            <p className="text-sm font-medium">What to confirm yourself</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-kc-ink/80">
+              {check.confirmYourself.map((c) => (
+                <li key={c}>{c}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
         <ul className="mt-8 space-y-3">
           {check.evidence.length === 0 ? (
             <li className="rounded-2xl border-2 border-kc-ink bg-kc-muted px-4 py-4">
-              No rule hits. Looks comparatively clean on current heuristics.
+              No red flags found on current checks. Confirm the role on the official careers page.
             </li>
           ) : (
             check.evidence.map((item) => (

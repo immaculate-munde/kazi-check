@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getRequestFingerprint } from "@/lib/http/fingerprint";
 import { flagSchema } from "@/lib/http/schemas";
-import { memoryAddFlag } from "@/lib/store/memory";
+import { addFlag } from "@/lib/store";
+import { dispatchRetroAlerts } from "@/lib/bot/retro";
 
 export const instant = false;
 
@@ -17,14 +18,25 @@ export async function POST(request: Request) {
     }
 
     const fingerprintHash = await getRequestFingerprint();
-    const result = memoryAddFlag({
+    const result = await addFlag({
       ...parsed.data,
       fingerprintHash,
     });
 
-    return NextResponse.json(result, {
-      status: result.alreadyFlagged ? 200 : 201,
-    });
+    let retroAlerts: Awaited<ReturnType<typeof dispatchRetroAlerts>> = [];
+    if (!result.alreadyFlagged) {
+      retroAlerts = await dispatchRetroAlerts({
+        subjectId: result.subjectId,
+        reason: result.reason,
+      });
+    }
+
+    return NextResponse.json(
+      { ...result, retroAlerts },
+      {
+        status: result.alreadyFlagged ? 200 : 201,
+      },
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : "Flag failed";
     return NextResponse.json({ error: message }, { status: 400 });
