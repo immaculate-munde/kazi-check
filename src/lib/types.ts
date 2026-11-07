@@ -21,6 +21,9 @@ export type RiskBand =
 
 export type SubjectKind = "domain" | "phone" | "url" | "handle" | "email";
 
+/** Community-registry moderation. Unpublished and unverified never stamp SCAM. */
+export type RegistryStatus = "unverified" | "under_investigation" | "confirmed";
+
 export type EvidenceItem = {
   ruleId: string;
   title: string;
@@ -152,6 +155,8 @@ export type RegistrySubject = {
   lastFlaggedAt: string | null;
   topReasons: string[];
   recentFlags: { reason: string; createdAt: string }[];
+  status: RegistryStatus;
+  isPublished: boolean;
 };
 
 export type CreateCheckInput = {
