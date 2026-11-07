@@ -3,23 +3,23 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 const steps = [
   {
     n: "01",
-    title: "Choose your side",
-    body: "Job offer or applicant — same product, different rule pack.",
+    title: "Verify the opportunity",
+    body: "Submit an advert, get a risk score, evidence, and recommended action.",
   },
   {
     n: "02",
-    title: "Paste the text",
-    body: "We extract domains, fees, contacts, and claims into structured signals.",
+    title: "Match your skills",
+    body: "Compare your CV to the role, review gaps, and take a short domain quiz.",
   },
   {
     n: "03",
-    title: "Read the evidence",
-    body: "Verdict plus rule hits, WHOIS/whitelist checks, and community flag counts.",
+    title: "Check the offer",
+    body: "Analyse offer letters for green/red flags and draft clarification emails.",
   },
   {
     n: "04",
-    title: "Act",
-    body: "SMS the result, flag the recruiter, or draft a takedown alert.",
+    title: "Track and flag",
+    body: "Save opportunities, and flag recruiters with a clear reason for the community.",
   },
 ];
 
@@ -43,11 +43,11 @@ export function HowItWorks() {
                 <span className="text-2xl font-medium md:text-4xl">{step.n}</span>
                 <span className="text-xl font-medium md:text-2xl">{step.title}</span>
               </div>
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-kc-ink bg-white text-2xl group-open:hidden">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-kc-ink bg-kc-white text-2xl group-open:hidden">
                 +
               </span>
-              <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-kc-ink bg-kc-ink text-2xl text-white group-open:flex">
-                −
+              <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-kc-ink bg-kc-ink text-2xl text-kc-on-ink group-open:flex">
+                -
               </span>
             </summary>
             <p className="px-6 pb-8 text-lg text-kc-ink/80 md:px-10 md:pl-[7.5rem]">

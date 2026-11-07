@@ -11,21 +11,41 @@ import type { RegistrySubject } from "@/lib/types";
 export function SubjectDetailClient({ subjectId }: { subjectId: string }) {
   const [subject, setSubject] = useState<RegistrySubject | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [reason, setReason] = useState("Asked for interview / application fee");
+  const [flagMsg, setFlagMsg] = useState<string | null>(null);
+
+  async function load() {
+    const res = await fetch(`/api/registry/${subjectId}`);
+    const data = await res.json();
+    if (!res.ok) setError(data.error ?? "Not found");
+    else setSubject(data);
+  }
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const res = await fetch(`/api/registry/${subjectId}`);
-      const data = await res.json();
-      if (!cancelled) {
-        if (!res.ok) setError(data.error ?? "Not found");
-        else setSubject(data);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    load();
   }, [subjectId]);
+
+  async function flagAgain() {
+    if (!subject) return;
+    const res = await fetch("/api/subjects/flags", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        kind: subject.kind,
+        key: subject.key,
+        reason,
+      }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setFlagMsg(
+        data.alreadyFlagged
+          ? "You already flagged this from this browser."
+          : `Flagged. Now ${data.flagCount} flags.`,
+      );
+      load();
+    }
+  }
 
   if (error) {
     return (
@@ -68,9 +88,55 @@ export function SubjectDetailClient({ subjectId }: { subjectId: string }) {
             : "Not flagged yet"}
         </p>
 
+        <div className="mt-8">
+          <h2 className="text-lg font-medium">Why it was flagged</h2>
+          <ul className="mt-3 space-y-2">
+            {(subject.topReasons.length > 0
+              ? subject.topReasons
+              : ["No detailed reason recorded yet"]
+            ).map((r) => (
+              <li
+                key={r}
+                className="rounded-xl border-2 border-kc-ink bg-kc-white px-3 py-2 text-sm"
+              >
+                {r}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {subject.recentFlags.length > 0 ? (
+          <div className="mt-6">
+            <h3 className="text-sm font-medium text-kc-gray">Recent flags</h3>
+            <ul className="mt-2 space-y-2 text-sm">
+              {subject.recentFlags.map((f, i) => (
+                <li key={`${f.createdAt}-${i}`}>
+                  {f.reason}{" "}
+                  <span className="text-kc-gray">
+                    · {new Date(f.createdAt).toLocaleString()}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        <div className="mt-8 space-y-3 rounded-2xl border-2 border-kc-ink bg-kc-white p-4">
+          <p className="font-medium">Add your flag with a reason</p>
+          <input
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className="w-full rounded-xl border-2 border-kc-ink px-4 py-3"
+          />
+          <Button variant="solid" onClick={flagAgain}>
+            Flag as scam
+          </Button>
+          {flagMsg ? <p className="text-sm text-kc-ink/75">{flagMsg}</p> : null}
+        </div>
+
         <div className="mt-8 flex flex-wrap gap-3">
           <Button
-            href={`/check?direction=${subject.direction ?? "job_offer"}`}
+            href={`/check?direction=${subject.direction === "applicant" ? "applicant" : "job_offer"}`}
             variant="solid"
           >
             Run a fresh check

@@ -9,13 +9,20 @@ import type { CheckDirection } from "@/lib/types";
 export function CheckForm({ direction }: { direction: CheckDirection }) {
   const router = useRouter();
   const [text, setText] = useState("");
+  const [url, setUrl] = useState("");
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  async function onFile(file: File | null) {
+    if (!file) return;
+    const raw = await file.text();
+    setText((prev) => (prev ? `${prev}\n\n${raw}` : raw));
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!text.trim()) return;
+    if (!text.trim() && !url.trim()) return;
     setSubmitting(true);
     setError(null);
 
@@ -26,6 +33,7 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
         body: JSON.stringify({
           direction,
           text,
+          url: url.trim() || undefined,
           phone_for_sms: phone.trim() || undefined,
         }),
       });
@@ -51,7 +59,6 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
           </label>
           <textarea
             id="ad-text"
-            required
             rows={10}
             value={text}
             onChange={(e) => setText(e.target.value)}
@@ -60,8 +67,38 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
                 ? "Paste CV summary, email, or LinkedIn outreach…"
                 : "Paste the full job ad text here…"
             }
-            className="w-full resize-y rounded-2xl border-2 border-kc-ink bg-white px-4 py-3 text-base outline-none focus:ring-2 focus:ring-kc-lime"
+            className="w-full resize-y rounded-2xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-base text-kc-ink outline-none focus:ring-2 focus:ring-kc-lime"
           />
+        </div>
+
+        <div>
+          <label htmlFor="url" className="mb-2 block text-sm font-medium">
+            Advert URL (optional)
+          </label>
+          <input
+            id="url"
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://…"
+            className="w-full rounded-2xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-base text-kc-ink outline-none focus:ring-2 focus:ring-kc-lime"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="file" className="mb-2 block text-sm font-medium">
+            Upload text/PDF-as-text file (optional)
+          </label>
+          <input
+            id="file"
+            type="file"
+            accept=".txt,.md,.csv,.json,text/plain"
+            onChange={(e) => onFile(e.target.files?.[0] ?? null)}
+            className="block w-full text-sm"
+          />
+          <p className="mt-1 text-xs text-kc-gray">
+            Tip: paste PDF text, or upload a .txt export. Full OCR comes later.
+          </p>
         </div>
 
         <div>
@@ -74,12 +111,12 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="07XXXXXXXX"
-            className="w-full rounded-2xl border-2 border-kc-ink bg-white px-4 py-3 text-base outline-none focus:ring-2 focus:ring-kc-lime"
+            className="w-full rounded-2xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-base text-kc-ink outline-none focus:ring-2 focus:ring-kc-lime"
           />
         </div>
 
         {error ? (
-          <p className="rounded-xl border-2 border-kc-ink bg-white px-4 py-3 text-sm text-red-700">
+          <p className="rounded-xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-sm text-red-600 dark:text-red-400">
             {error}
           </p>
         ) : null}

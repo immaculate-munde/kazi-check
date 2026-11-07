@@ -5,22 +5,29 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 const modes = [
   {
     href: "/check?direction=job_offer",
-    label: "Check a job offer",
-    body: "Paste a Telegram, WhatsApp, or email job ad. We extract signals and run scam rules.",
+    label: "Verify a job advert",
+    body: "Pre-application check with risk score, evidence, and recommended next steps.",
     tone: "muted" as const,
     icon: "↓",
   },
   {
-    href: "/check?direction=applicant",
-    label: "Check an applicant",
-    body: "Hiring? Paste outreach or CV claims and see if the candidate looks credible.",
+    href: "/skills",
+    label: "Skill Match & quiz",
+    body: "Compare your CV to a role, see gaps, then take a short domain quiz.",
     tone: "lime" as const,
     icon: "↓",
   },
   {
+    href: "/offer",
+    label: "Post-offer check",
+    body: "Analyse an offer letter for green/red flags and draft clarification email.",
+    tone: "white" as const,
+    icon: "↓",
+  },
+  {
     href: "/registry",
-    label: "Browse flagged recruiters",
-    body: "See who the community has already flagged — with live flag counts.",
+    label: "Community scam registry",
+    body: "See who was flagged and why, with live flag counts and reasons.",
     tone: "ink" as const,
     icon: "→",
   },
@@ -30,20 +37,16 @@ export function ModeCards() {
   return (
     <section id="modes" className="mx-auto w-full max-w-6xl px-5 py-16 md:px-8">
       <div className="mb-10 max-w-xl">
-        <SectionLabel>Services</SectionLabel>
+        <SectionLabel>Verify. Match. Proceed.</SectionLabel>
         <p className="mt-6 text-lg text-kc-ink/80">
-          Two-way trust: seekers verify offers, hirers verify applicants, and
-          anyone can strengthen the community registry.
+          Job-seeker protection and career guidance: check adverts, match skills,
+          and assess offers before you act.
         </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        {modes.map((mode, i) => (
-          <Link
-            key={mode.href}
-            href={mode.href}
-            className={i === 2 ? "md:col-span-2 lg:col-span-1" : undefined}
-          >
+        {modes.map((mode) => (
+          <Link key={mode.href} href={mode.href}>
             <BrutalCard
               tone={mode.tone}
               className="flex h-full min-h-[220px] flex-col justify-between transition hover:-translate-y-0.5"
@@ -52,7 +55,7 @@ export function ModeCards() {
                 <SectionLabel>{mode.label}</SectionLabel>
                 <p
                   className={`mt-6 max-w-sm text-lg ${
-                    mode.tone === "ink" ? "text-white/80" : "text-kc-ink/80"
+                    mode.tone === "ink" ? "text-kc-on-ink/80" : "text-kc-ink/80"
                   }`}
                 >
                   {mode.body}
@@ -62,8 +65,8 @@ export function ModeCards() {
                 <span
                   className={`inline-flex h-8 w-8 items-center justify-center rounded-full border-2 ${
                     mode.tone === "ink"
-                      ? "border-white bg-kc-lime text-kc-ink"
-                      : "border-kc-ink bg-kc-ink text-white"
+                      ? "border-kc-on-ink bg-kc-lime text-[#191a23]"
+                      : "border-kc-ink bg-kc-ink text-kc-on-ink"
                   }`}
                 >
                   {mode.icon}
