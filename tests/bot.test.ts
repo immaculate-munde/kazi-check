@@ -11,7 +11,7 @@ import {
 import { extractImagePlaceholder, unreadablePhoneGap } from "@/lib/bot/ocr";
 import { buildApplyPacket } from "@/lib/bot/apply";
 import { dispatchRetroAlerts } from "@/lib/bot/retro";
-import { memoryAddFlag, memoryGetCheck } from "@/lib/store/memory";
+import { addFlag, getCheck } from "@/lib/store";
 import { formatBatchDigest } from "@/lib/bot/digest";
 import { processAd } from "@/lib/bot/process";
 import { heuristicExtract } from "@/lib/extract";
@@ -153,7 +153,7 @@ describe("apply", () => {
       text: fixture("safaricom_official").text,
     });
     expect(item.gate).toBe("ELIGIBLE");
-    const check = item.checkId ? memoryGetCheck(item.checkId) : null;
+    const check = item.checkId ? await getCheck(item.checkId) : null;
     const built = buildApplyPacket(item, check);
     expect(built.ok).toBe(true);
     if (built.ok) {
@@ -167,7 +167,7 @@ describe("apply", () => {
       sourceType: "paste",
       text: fixture("acme_roads").text,
     });
-    const check = item.checkId ? memoryGetCheck(item.checkId) : null;
+    const check = item.checkId ? await getCheck(item.checkId) : null;
     const built = buildApplyPacket(item, check);
     expect(built.ok).toBe(false);
   });
@@ -183,11 +183,11 @@ describe("retro-alerts", () => {
       { notifyPhone: "0711111111" },
     );
     expect(item.checkId).toBeTruthy();
-    const flagged = memoryAddFlag({
+    const flagged = await addFlag({
       kind: "phone",
       key: "+254799887766",
       reason: "Same number used in a later fake ad",
-      fingerprintHash: "retro_test_fp",
+      fingerprintHash: `retro_test_fp_${Date.now()}`,
     });
     const alerts = await dispatchRetroAlerts({
       subjectId: flagged.subjectId,

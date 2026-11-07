@@ -1,6 +1,7 @@
 import { canDraft } from "@/lib/bot/gate";
 import { draftApplication } from "@/lib/bot/draft";
-import { memoryGetCheck, memorySaveBotItem, memoryUpsertTracker } from "@/lib/store/memory";
+import { getCheck } from "@/lib/store";
+import { memorySaveBotItem, memoryUpsertTracker } from "@/lib/store/memory";
 import type { ApplyPacket, BotQueueItem, CheckRecord } from "@/lib/types";
 
 function isChatUrl(url: string): boolean {
@@ -71,8 +72,11 @@ export function buildApplyPacket(
   };
 }
 
-export function recordApply(item: BotQueueItem, packet: ApplyPacket): BotQueueItem {
-  const check = item.checkId ? memoryGetCheck(item.checkId) : null;
+export async function recordApply(
+  item: BotQueueItem,
+  packet: ApplyPacket,
+): Promise<BotQueueItem> {
+  const check = item.checkId ? await getCheck(item.checkId) : null;
   const employer =
     (check && "claimedOrg" in check.extracted && check.extracted.claimedOrg) ||
     packet.orgName ||

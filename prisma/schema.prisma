@@ -10,6 +10,7 @@ datasource db {
 enum CheckDirection {
   job_offer
   applicant
+  offer_letter
 }
 
 enum SubjectKind {
@@ -21,37 +22,48 @@ enum SubjectKind {
 }
 
 model Check {
-  id         String         @id @default(cuid())
-  direction  CheckDirection
-  rawText    String
-  url        String?
-  verdict    String
-  score      Float          @default(0)
-  extracted  Json
-  createdAt  DateTime       @default(now())
-  evidence   Evidence[]
-  subjects   CheckSubject[]
+  id                 String         @id @default(cuid())
+  direction          CheckDirection
+  rawText            String
+  url                String?
+  verdict            String
+  score              Float          @default(0)
+  riskScore          Int            @default(0)
+  riskBand           String         @default("LOW")
+  recommendedAction  String         @default("")
+  extracted          Json
+  gaps               Json           @default("[]")
+  confirmYourself    Json           @default("[]")
+  officialListing    Json?
+  notifyPhone        String?
+  retroAlertedAt     DateTime?
+  createdAt          DateTime       @default(now())
+  evidence           Evidence[]
+  subjects           CheckSubject[]
 }
 
 model Evidence {
-  id       String @id @default(cuid())
-  checkId  String
-  check    Check  @relation(fields: [checkId], references: [id], onDelete: Cascade)
-  ruleId   String
-  title    String
-  snippet  String
-  severity String
+  id          String  @id @default(cuid())
+  checkId     String
+  check       Check   @relation(fields: [checkId], references: [id], onDelete: Cascade)
+  ruleId      String
+  title       String
+  snippet     String
+  severity    String
+  source      String?
+  sourceType  String?
+  retrievedAt String?
 }
 
 model Subject {
-  id            String         @id @default(cuid())
+  id            String          @id @default(cuid())
   kind          SubjectKind
   key           String
   direction     CheckDirection?
-  flagCount     Int            @default(0)
-  summary       String         @default("")
+  flagCount     Int             @default(0)
+  summary       String          @default("")
   lastFlaggedAt DateTime?
-  createdAt     DateTime       @default(now())
+  createdAt     DateTime        @default(now())
   flags         Flag[]
   checks        CheckSubject[]
 

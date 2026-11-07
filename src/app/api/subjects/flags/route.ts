@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getRequestFingerprint } from "@/lib/http/fingerprint";
 import { flagSchema } from "@/lib/http/schemas";
-import { memoryAddFlag } from "@/lib/store/memory";
+import { addFlag } from "@/lib/store";
 import { dispatchRetroAlerts } from "@/lib/bot/retro";
 
 export const instant = false;
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     }
 
     const fingerprintHash = await getRequestFingerprint();
-    const result = memoryAddFlag({
+    const result = await addFlag({
       ...parsed.data,
       fingerprintHash,
     });
