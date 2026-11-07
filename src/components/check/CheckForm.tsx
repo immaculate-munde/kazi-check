@@ -69,37 +69,6 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
   return (
     <BrutalCard tone="muted">
       <form className="space-y-6" onSubmit={onSubmit}>
-        <div className="rounded-2xl border-2 border-dashed border-kc-ink/40 bg-kc-white/60 p-4">
-          <p className="text-sm font-medium text-kc-ink">Demo presentation</p>
-          <p className="mt-1 text-xs text-kc-ink/70">
-            Prefill a sample case, then hit Run check. Edit the text anytime.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => loadDemo("fraud")}
-              className={
-                demoLoaded === fraudCase.id
-                  ? "!bg-red-100 dark:!bg-red-950/40"
-                  : undefined
-              }
-            >
-              {fraudCase.label}
-            </Button>
-            <Button
-              type="button"
-              variant="lime"
-              onClick={() => loadDemo("legit")}
-              className={
-                demoLoaded === legitCase.id ? "ring-2 ring-kc-ink" : undefined
-              }
-            >
-              {legitCase.label}
-            </Button>
-          </div>
-        </div>
-
         <div>
           <label htmlFor="ad-text" className="mb-2 block text-sm font-medium">
             {direction === "applicant"
@@ -190,6 +159,37 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
           >
             Switch to {direction === "applicant" ? "job offer" : "applicant"}
           </Button>
+        </div>
+
+        <div className="rounded-2xl border-2 border-dashed border-kc-ink/40 bg-kc-white/60 p-4">
+          <p className="text-sm font-medium text-kc-ink">Demo presentation</p>
+          <p className="mt-1 text-xs text-kc-ink/70">
+            Prefill a sample case, then hit Run check. Edit the text anytime.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => loadDemo("fraud")}
+              className={
+                demoLoaded === fraudCase.id
+                  ? "!bg-red-100 dark:!bg-red-950/40"
+                  : undefined
+              }
+            >
+              {fraudCase.label}
+            </Button>
+            <Button
+              type="button"
+              variant="lime"
+              onClick={() => loadDemo("legit")}
+              className={
+                demoLoaded === legitCase.id ? "ring-2 ring-kc-ink" : undefined
+              }
+            >
+              {legitCase.label}
+            </Button>
+          </div>
         </div>
       </form>
     </BrutalCard>
