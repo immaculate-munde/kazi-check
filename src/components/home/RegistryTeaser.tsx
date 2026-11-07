@@ -17,44 +17,43 @@ export function RegistryTeaser() {
   }, []);
 
   return (
-    <section className="mx-auto w-full max-w-6xl px-5 py-16 md:px-8">
-      <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <section className="px-5 py-10 pb-12 md:px-8">
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <SectionLabel>Community registry</SectionLabel>
-          <p className="mt-4 max-w-lg text-lg text-kc-ink/80">
-            When others get the same link, they see how many people already
-            flagged it as scam.
-          </p>
+          <h2 className="mt-3 max-w-lg text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            Already flagged by someone else?
+          </h2>
         </div>
-        <Link href="/registry" className="font-medium underline underline-offset-4">
+        <Link href="/registry" className="font-medium text-foreground/70 underline decoration-foreground/25 underline-offset-4 hover:text-foreground hover:decoration-foreground">
           See all flagged subjects →
         </Link>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {items.map((item) => (
-          <Link key={item.id} href={`/registry/${item.id}`}>
-            <article className="flex h-full flex-col justify-between rounded-kc border-2 border-kc-ink bg-kc-ink p-8 text-kc-on-ink shadow-brutal transition hover:-translate-y-0.5">
-              <div>
-                <p className="text-sm uppercase tracking-wide text-kc-on-ink/60">
-                  {item.kind} ·{" "}
-                  {item.direction === "applicant" ? "applicant" : "recruiter"}
-                </p>
-                <h3 className="mt-3 break-all text-xl font-medium">{item.key}</h3>
-                <p className="mt-4 text-kc-on-ink/75">{item.summary}</p>
-                {item.topReasons?.[0] ? (
-                  <p className="mt-3 text-sm text-kc-on-ink/90">
-                    Why: {item.topReasons[0]}
+      {items.length === 0 ? (
+        <p className="kc-tile px-5 py-8 text-sm text-foreground/65">
+          No public flags yet. Reports from checks appear here.
+        </p>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-3">
+          {items.map((item) => (
+            <Link key={item.id} href={`/registry/${item.id}`} className="block h-full">
+              <article className="kc-cream flex h-full min-w-0 flex-col justify-between overflow-hidden p-5">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-kc-gray">
+                    {item.kind} · {item.direction === "applicant" ? "applicant" : "recruiter"}
                   </p>
-                ) : null}
-              </div>
-              <div className="mt-6">
-                <FlagCountPill count={item.flagCount} />
-              </div>
-            </article>
-          </Link>
-        ))}
-      </div>
+                  <h3 className="mt-2 break-all text-lg font-semibold">{item.key}</h3>
+                  <p className="mt-3 text-sm leading-6 text-kc-ink/70">{item.summary}</p>
+                </div>
+                <div className="mt-5">
+                  <FlagCountPill count={item.flagCount} />
+                </div>
+              </article>
+            </Link>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

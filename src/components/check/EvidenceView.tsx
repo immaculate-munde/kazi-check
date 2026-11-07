@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CheckFindings } from "@/components/check/CheckFindings";
-import { FindingRow, type FindingStatus } from "@/components/check/FindingRow";
+import type { FindingStatus } from "@/components/check/FindingRow";
 import { OfficialOrgSidebar } from "@/components/check/OfficialOrgSidebar";
 import { RiskScoreBanner, riskSummary } from "@/components/check/RiskScoreBanner";
 import { Button } from "@/components/ui/Button";
@@ -12,7 +12,7 @@ import { FlagCountPill } from "@/components/ui/FlagCountPill";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { countFindings, queueLineForCheck } from "@/lib/check/queue-line";
 import { trackerPrefillHref } from "@/lib/tracker/query";
-import type { CheckRecord, EvidenceItem } from "@/lib/types";
+import type { CheckRecord, EvidenceItem, Finding as EngineFinding } from "@/lib/types";
 
 const FLAG_REASONS = [
   "Asked for interview / application fee",
@@ -134,6 +134,19 @@ function buildFindings(check: CheckRecord, flagCount: number): Finding[] {
   }
 
   return findings;
+}
+
+function toEngineFindings(items: Finding[]): EngineFinding[] {
+  return items.map((item) => ({
+    checkKey: item.id,
+    title: item.title,
+    outcome:
+      item.status === "Flagged" ? "flagged" : item.status === "Passed" ? "passed" : "unknown",
+    points: item.points ?? 0,
+    explanation: item.explanation,
+    evidence: item.snippet ?? null,
+    source: item.source,
+  }));
 }
 
 export function EvidenceView({ checkId }: { checkId: string }) {
@@ -347,8 +360,8 @@ export function EvidenceView({ checkId }: { checkId: string }) {
     : "NEEDS INPUT";
 
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-6 px-5 py-8 md:px-8 md:py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start">
-      <main className="min-w-0">
+    <div className="mx-auto grid w-full max-w-6xl gap-6 px-5 py-8 md:px-8 md:py-10 lg:grid-cols-[minmax(0,1fr)_16.5rem] lg:items-start">
+      <div className="min-w-0">
         <div className="mb-5 flex flex-wrap items-center gap-3">
           <SectionLabel>Opportunity check</SectionLabel>
           <FlagCountPill count={flagCount} />
@@ -362,7 +375,7 @@ export function EvidenceView({ checkId }: { checkId: string }) {
           queueLine={queueLineForCheck(check, queueStatus)}
         />
 
-        <section className="mt-7" aria-labelledby="recommended-action">
+        <section className="mt-5" aria-labelledby="recommended-action">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-kc-gray">Check {check.id}</p>
@@ -370,37 +383,37 @@ export function EvidenceView({ checkId }: { checkId: string }) {
             </div>
             <span className="text-sm text-kc-gray">{new Date(check.createdAt).toLocaleString()}</span>
           </div>
-          <div className="mt-3 rounded-2xl border border-kc-ink/10 bg-kc-white p-4 shadow-[0_8px_24px_rgba(25,26,35,0.05)] sm:p-5">
+          <div className="mt-3 rounded-[1.5rem] bg-kc-white p-4 shadow-[0_12px_32px_rgba(18,20,26,0.06)] sm:p-5">
             <p className="leading-7 text-kc-ink/85">{check.recommendedAction}</p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <Button variant="outline" onClick={saveToTracker} disabled={savedTracker}>
+                {savedTracker ? "Saved to tracker" : "Save to application tracker"}
+              </Button>
+              <Button href={`/skills?checkId=${check.id}`} variant="lime">Skill match this role</Button>
+              <Button href="/registry" variant="outline">Open community registry</Button>
+            </div>
           </div>
         </section>
+      </div>
 
-        <section className="mt-8" aria-labelledby="findings-title">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
-            <div>
-              <h2 id="findings-title" className="text-xl font-semibold">Findings</h2>
-              <p className="mt-1 text-sm text-kc-gray">Each row shows what matched and its impact on this score.</p>
-            </div>
-            <p className="text-xs text-kc-gray">Score impact is capped at 100.</p>
+      <aside className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:row-span-2">
+        <OfficialOrgSidebar check={check} />
+        <section className="rounded-3xl border border-kc-ink/10 bg-kc-muted/60 p-4 sm:p-5">
+          <h2 className="font-semibold">How to read this result</h2>
+          <p className="mt-2 text-sm leading-6 text-kc-ink/70">These are automated risk indicators, not a legal conclusion or a guarantee. Review the evidence and verify with the employer.</p>
+          <a href="https://www.dci.go.ke/" target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center font-medium text-kc-ink underline decoration-kc-ink/30 underline-offset-4 hover:decoration-kc-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kc-ink">Lost money? Report it to DCI ↗</a>
+        </section>
+      </aside>
+
+      <div className="min-w-0">
+        <section className="mt-2 lg:mt-0" aria-labelledby="findings-title">
+          <div className="mb-4">
+            <h2 id="findings-title" className="text-xl font-semibold">Findings</h2>
+            <p className="mt-1 text-sm text-kc-gray">Flagged items first. Passed checks stay folded away.</p>
           </div>
-          {check.findings?.length ? (
-            <CheckFindings findings={check.findings} />
-          ) : (
-            <div className="space-y-3">
-              {fallbackFindings.map((item, index) => (
-                <FindingRow
-                  key={item.id}
-                  title={item.title}
-                  status={item.status}
-                  points={item.points}
-                  explanation={item.explanation}
-                  snippet={item.snippet}
-                  source={item.source}
-                  index={index}
-                />
-              ))}
-            </div>
-          )}
+          <CheckFindings
+            findings={check.findings?.length ? check.findings : toEngineFindings(fallbackFindings)}
+          />
         </section>
 
         {topReasons.length > 0 ? (
@@ -415,37 +428,37 @@ export function EvidenceView({ checkId }: { checkId: string }) {
           </section>
         ) : null}
 
-        <section className="mt-8 rounded-2xl border border-kc-ink/10 bg-kc-white p-4 sm:p-5" aria-labelledby="report-title">
-          <div className="mb-5">
+        <details className="mt-8 rounded-2xl border border-kc-ink/10 bg-kc-white p-4 sm:p-5" aria-labelledby="report-title">
+          <summary className="cursor-pointer">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-kc-gray">Help others check</p>
             <h2 id="report-title" className="mt-1 text-xl font-semibold">Report what happened</h2>
             <p className="mt-2 text-sm leading-6 text-kc-ink/70">Add details you personally reviewed. Your report is added to the community registry after submission.</p>
-          </div>
-          <form className="space-y-4" onSubmit={onFlag}>
+          </summary>
+          <form className="mt-5 space-y-4" onSubmit={onFlag}>
             <div>
               <label htmlFor="flag-reason" className="mb-1.5 block text-sm font-medium">Main reason</label>
-              <select id="flag-reason" value={reasonChoice} onChange={(e) => setReasonChoice(e.target.value)} className="min-h-11 w-full rounded-xl border border-kc-ink/15 bg-kc-white px-3 py-2.5 text-sm text-kc-ink focus:outline-none focus:ring-2 focus:ring-kc-lime" disabled={flagged}>
+              <select id="flag-reason" value={reasonChoice} onChange={(e) => setReasonChoice(e.target.value)} className="min-h-11 w-full rounded-xl border border-kc-ink/15 bg-kc-white px-3 py-2.5 text-sm text-kc-ink focus:outline-none focus:ring-2 focus:ring-kc-ink/20" disabled={flagged}>
                 {FLAG_REASONS.map((reason) => <option key={reason} value={reason}>{reason}</option>)}
               </select>
             </div>
             {reasonChoice === "Other (write below)" ? (
               <div>
                 <label htmlFor="custom-reason" className="mb-1.5 block text-sm font-medium">What happened?</label>
-                <input id="custom-reason" value={customReason} onChange={(e) => setCustomReason(e.target.value)} maxLength={160} className="min-h-11 w-full rounded-xl border border-kc-ink/15 bg-kc-white px-3 py-2.5 text-sm text-kc-ink focus:outline-none focus:ring-2 focus:ring-kc-lime" disabled={flagged} />
+                <input id="custom-reason" value={customReason} onChange={(e) => setCustomReason(e.target.value)} maxLength={160} className="min-h-11 w-full rounded-xl border border-kc-ink/15 bg-kc-white px-3 py-2.5 text-sm text-kc-ink focus:outline-none focus:ring-2 focus:ring-kc-ink/20" disabled={flagged} />
               </div>
             ) : null}
             <div>
               <label htmlFor="claimed-org" className="mb-1.5 block text-sm font-medium">Claimed organization <span className="font-normal text-kc-gray">(optional)</span></label>
-              <input id="claimed-org" value={claimedOrg} onChange={(e) => setClaimedOrg(e.target.value)} maxLength={100} className="min-h-11 w-full rounded-xl border border-kc-ink/15 bg-kc-white px-3 py-2.5 text-sm text-kc-ink focus:outline-none focus:ring-2 focus:ring-kc-lime" disabled={flagged} />
+              <input id="claimed-org" value={claimedOrg} onChange={(e) => setClaimedOrg(e.target.value)} maxLength={100} className="min-h-11 w-full rounded-xl border border-kc-ink/15 bg-kc-white px-3 py-2.5 text-sm text-kc-ink focus:outline-none focus:ring-2 focus:ring-kc-ink/20" disabled={flagged} />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="payment-target" className="mb-1.5 block text-sm font-medium">Till / phone <span className="font-normal text-kc-gray">(optional)</span></label>
-                <input id="payment-target" type="text" inputMode="tel" value={paymentTarget} onChange={(e) => setPaymentTarget(e.target.value)} maxLength={80} className="min-h-11 w-full rounded-xl border border-kc-ink/15 bg-kc-white px-3 py-2.5 text-sm text-kc-ink focus:outline-none focus:ring-2 focus:ring-kc-lime" disabled={flagged} />
+                <input id="payment-target" type="text" inputMode="tel" value={paymentTarget} onChange={(e) => setPaymentTarget(e.target.value)} maxLength={80} className="min-h-11 w-full rounded-xl border border-kc-ink/15 bg-kc-white px-3 py-2.5 text-sm text-kc-ink focus:outline-none focus:ring-2 focus:ring-kc-ink/20" disabled={flagged} />
               </div>
               <div>
                 <label htmlFor="amount-kes" className="mb-1.5 block text-sm font-medium">Amount in KSh <span className="font-normal text-kc-gray">(optional)</span></label>
-                <div className="flex min-h-11 items-center overflow-hidden rounded-xl border border-kc-ink/15 bg-kc-white focus-within:ring-2 focus-within:ring-kc-lime">
+                <div className="flex min-h-11 items-center overflow-hidden rounded-xl border border-kc-ink/15 bg-kc-white focus-within:ring-2 focus-within:ring-kc-ink/20">
                   <span className="border-r border-kc-ink/10 px-3 py-2.5 text-sm text-kc-gray">KSh</span>
                   <input id="amount-kes" type="number" min="0" step="1" inputMode="numeric" value={amountKes} onChange={(e) => setAmountKes(e.target.value)} className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-kc-ink outline-none" disabled={flagged} />
                 </div>
@@ -453,7 +466,7 @@ export function EvidenceView({ checkId }: { checkId: string }) {
             </div>
             <div>
               <label htmlFor="report-excerpt" className="mb-1.5 block text-sm font-medium">Message excerpt <span className="font-normal text-kc-gray">(optional)</span></label>
-              <textarea id="report-excerpt" rows={3} maxLength={240} value={excerpt} onChange={(e) => setExcerpt(e.target.value)} className="w-full rounded-xl border border-kc-ink/15 bg-kc-white px-3 py-2.5 text-sm leading-6 text-kc-ink focus:outline-none focus:ring-2 focus:ring-kc-lime" disabled={flagged} />
+              <textarea id="report-excerpt" rows={3} maxLength={240} value={excerpt} onChange={(e) => setExcerpt(e.target.value)} className="w-full rounded-xl border border-kc-ink/15 bg-kc-white px-3 py-2.5 text-sm leading-6 text-kc-ink focus:outline-none focus:ring-2 focus:ring-kc-ink/20" disabled={flagged} />
               <p className="mt-1 text-right text-xs text-kc-gray">{excerpt.length}/240</p>
             </div>
             <label className="flex cursor-pointer items-start gap-3 rounded-xl bg-kc-muted/70 p-3 text-sm leading-6 text-kc-ink/80">
@@ -466,38 +479,20 @@ export function EvidenceView({ checkId }: { checkId: string }) {
               {submittingReport ? "Adding your report…" : flagged ? "Report submitted" : "Submit community report"}
             </Button>
           </form>
-        </section>
+        </details>
 
-        <section className="mt-8 rounded-2xl border border-kc-ink/10 bg-kc-white p-4 sm:p-5" aria-labelledby="sms-title">
-          <h2 id="sms-title" className="font-semibold">Send the verdict by SMS</h2>
+        <details className="mt-4 rounded-2xl border border-kc-ink/10 bg-kc-white p-4 sm:p-5" aria-labelledby="sms-title">
+          <summary className="cursor-pointer font-semibold">Send the verdict by SMS</summary>
           <div className="mt-3 flex flex-col gap-3 sm:flex-row">
             <label htmlFor="sms-phone" className="sr-only">Phone number for SMS</label>
-            <input id="sms-phone" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="07XXXXXXXX" className="min-h-11 min-w-0 flex-1 rounded-xl border border-kc-ink/15 bg-kc-white px-3 py-2.5 text-sm text-kc-ink focus:outline-none focus:ring-2 focus:ring-kc-lime" />
+            <input id="sms-phone" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="07XXXXXXXX" className="min-h-11 min-w-0 flex-1 rounded-xl border border-kc-ink/15 bg-kc-white px-3 py-2.5 text-sm text-kc-ink focus:outline-none focus:ring-2 focus:ring-kc-ink/20" />
             <Button type="button" variant="outline" onClick={onSms} disabled={!phone.trim()}>
               {smsStatus === "sent" ? "Sent" : smsStatus === "stub" ? "Queued (demo)" : smsStatus === "failed" ? "Failed — retry" : "Send SMS"}
             </Button>
           </div>
           {smsStatus !== "idle" ? <p className="mt-2 text-sm text-kc-ink/70" role="status">{smsStatus === "stub" ? "SMS is a demo stub. No message was delivered." : smsStatus === "sent" ? "Verdict sent." : "The SMS could not be sent. Check the number and retry."}</p> : null}
-        </section>
-
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Button variant="outline" onClick={saveToTracker} disabled={savedTracker}>
-            {savedTracker ? "Saved to tracker" : "Save to application tracker"}
-          </Button>
-          <Button href={`/skills?checkId=${check.id}`} variant="lime">Skill match this role</Button>
-          <Button href="/registry" variant="outline">Open community registry</Button>
-        </div>
-      </main>
-
-      <aside className="space-y-4 lg:sticky lg:top-6">
-        <OfficialOrgSidebar check={check} />
-
-        <section className="rounded-3xl border border-kc-ink/10 bg-kc-muted/60 p-5">
-          <h2 className="font-semibold">How to read this result</h2>
-          <p className="mt-2 text-sm leading-6 text-kc-ink/70">These are automated risk indicators, not a legal conclusion or a guarantee. Review the evidence and verify with the employer.</p>
-          <a href="https://www.dci.go.ke/" target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center font-medium text-kc-ink underline decoration-kc-ink/30 underline-offset-4 hover:decoration-kc-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kc-ink">Lost money? Report it to DCI ↗</a>
-        </section>
-      </aside>
+        </details>
+      </div>
     </div>
   );
 }

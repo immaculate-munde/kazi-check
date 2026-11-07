@@ -73,7 +73,7 @@ export function SubjectDetailClient({ subjectId }: { subjectId: string }) {
         <FlagCountPill count={subject.flagCount} />
       </div>
 
-      <BrutalCard className="mt-8" tone="muted">
+      <BrutalCard className="mt-8" tone="white">
         <p className="text-sm uppercase tracking-wide text-kc-gray">
           {subject.kind} ·{" "}
           {subject.direction === "applicant" ? "applicant" : "recruiter / offer"}
@@ -97,7 +97,7 @@ export function SubjectDetailClient({ subjectId }: { subjectId: string }) {
             ).map((r) => (
               <li
                 key={r}
-                className="rounded-xl border-2 border-kc-ink bg-kc-white px-3 py-2 text-sm"
+                className="rounded-xl border border-kc-ink/10 bg-kc-white px-3 py-2 text-sm"
               >
                 {r}
               </li>
@@ -121,12 +121,12 @@ export function SubjectDetailClient({ subjectId }: { subjectId: string }) {
           </div>
         ) : null}
 
-        <div className="mt-8 space-y-3 rounded-2xl border-2 border-kc-ink bg-kc-white p-4">
+        <div className="mt-8 space-y-3 rounded-2xl border border-kc-ink/10 bg-kc-white p-4">
           <p className="font-medium">Add your flag with a reason</p>
           <input
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            className="w-full rounded-xl border-2 border-kc-ink px-4 py-3"
+            className="kc-field"
           />
           <Button variant="solid" onClick={flagAgain}>
             Flag as scam

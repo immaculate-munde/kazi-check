@@ -69,61 +69,63 @@ export function OfferResultClient({ id }: { id: string }) {
       <div className="mb-5"><SectionLabel>Offer report</SectionLabel></div>
       <RiskScoreBanner riskBand={record.riskBand} riskScore={record.riskScore} direction="offer_letter" />
       <BrutalCard className="mt-6" tone="white">
-        <p className="font-medium">{record.verdict.replaceAll("_", " ")}</p>
+        <p className="text-sm font-medium text-kc-ink/80">{record.verdict.replaceAll("_", " ")}</p>
 
-        <section className="mt-8">
-          <h2 className="text-xl font-semibold">Supporting details</h2>
-          <ul className="mt-3 space-y-2">
-            {record.greenFlags.length === 0 ? (
-              <li><FindingRow title="Supporting details" status="Not determined" points={null} explanation="No supporting details were extracted from this offer." source="Offer letter analysis" /></li>
-            ) : (
-              record.greenFlags.map((f) => (
-              <FindingRow key={f.ruleId} title={f.title} status="Passed" points={0} explanation="This detail was present in the offer. Its presence does not verify the offer or the employer." snippet={f.snippet} source={f.source ?? "Offer text analysis"} index={record.greenFlags.indexOf(f)} />
-              ))
-            )}
-          </ul>
-        </section>
-
-        <section className="mt-8">
-          <h2 className="text-xl font-medium">Red flags</h2>
-          <ul className="mt-3 space-y-2">
+        <section className="mt-6">
+          <h2 className="text-lg font-semibold">Review these first</h2>
+          <div className="mt-3 space-y-2.5">
             {record.redFlags.length === 0 ? (
-              <li><FindingRow title="Risk signals" status="Not determined" points={null} explanation="No high-risk signal matched. This check cannot confirm the offer is safe." source="Offer letter analysis" /></li>
+              <FindingRow title="Risk signals" status="Not determined" points={null} explanation="No high-risk signal matched. This check cannot confirm the offer is safe." source="Offer letter analysis" />
             ) : (
-              record.redFlags.map((f) => (
-              <FindingRow key={`${f.ruleId}-${f.snippet}`} title={f.title} status="Flagged" points={f.severity === "high" ? 35 : f.severity === "medium" ? 20 : 5} explanation="This signal needs review before accepting or paying." snippet={f.snippet} source={f.source ?? "Offer text analysis"} index={record.redFlags.indexOf(f)} />
+              record.redFlags.map((f, index) => (
+                <FindingRow key={`${f.ruleId}-${f.snippet}`} title={f.title} status="Flagged" points={f.severity === "high" ? 35 : f.severity === "medium" ? 20 : 5} explanation="This signal needs review before accepting or paying." snippet={f.snippet} source={f.source ?? "Offer text analysis"} index={index} />
               ))
             )}
-          </ul>
+          </div>
         </section>
 
-        <section className="mt-8">
-          <h2 className="text-xl font-medium">Unresolved</h2>
-          <ul className="mt-3 space-y-2">
-            {record.unresolved.map((u) => (
-              <li key={u}><FindingRow title="Unresolved detail" status="Not determined" points={null} explanation={u} source="Offer letter analysis" /></li>
-            ))}
-          </ul>
-        </section>
+        {record.unresolved.length > 0 ? (
+          <details className="mt-6 rounded-2xl border border-kc-ink/10 bg-kc-muted/40 p-3" open={record.redFlags.length === 0}>
+            <summary className="cursor-pointer text-sm font-semibold">Unresolved · {record.unresolved.length}</summary>
+            <div className="mt-3 space-y-2.5">
+              {record.unresolved.map((u) => (
+                <FindingRow key={u} title="Unresolved detail" status="Not determined" points={null} explanation={u} source="Offer letter analysis" />
+              ))}
+            </div>
+          </details>
+        ) : null}
 
-        <section className="mt-8">
-          <h2 className="text-xl font-medium">Questions to ask</h2>
-          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-kc-ink/80">
+        <details className="mt-4 rounded-2xl border border-kc-ink/10 bg-kc-muted/30 p-3">
+          <summary className="cursor-pointer text-sm font-semibold">Supporting details · {record.greenFlags.length}</summary>
+          <div className="mt-3 space-y-2.5">
+            {record.greenFlags.length === 0 ? (
+              <FindingRow title="Supporting details" status="Not determined" points={null} explanation="No supporting details were extracted from this offer." source="Offer letter analysis" />
+            ) : (
+              record.greenFlags.map((f, index) => (
+                <FindingRow key={f.ruleId} title={f.title} status="Passed" points={0} explanation="This detail was present in the offer. Its presence does not verify the offer or the employer." snippet={f.snippet} source={f.source ?? "Offer text analysis"} index={index} />
+              ))
+            )}
+          </div>
+        </details>
+
+        <section className="mt-6">
+          <h2 className="text-lg font-semibold">Questions to ask</h2>
+          <ul className="mt-3 list-disc space-y-1 pl-5 text-sm leading-6 text-kc-ink/80">
             {record.questions.map((q) => (
               <li key={q}>{q}</li>
             ))}
           </ul>
         </section>
 
-        <section className="mt-8 rounded-2xl border-2 border-kc-ink bg-kc-muted p-4">
-          <h2 className="text-xl font-medium">Clarification email draft</h2>
+        <section className="mt-6 rounded-2xl border border-kc-ink/10 bg-kc-muted/50 p-4">
+          <h2 className="text-lg font-semibold">Clarification email draft</h2>
           <p className="mt-2 text-sm font-medium">{record.emailDraft.subject}</p>
-          <pre className="mt-3 whitespace-pre-wrap text-sm text-kc-ink/80">
+          <pre className="mt-3 max-h-56 overflow-auto whitespace-pre-wrap break-words text-sm leading-6 text-kc-ink/80">
             {record.emailDraft.body}
           </pre>
           <a
             href={mailto}
-            className="mt-4 inline-flex rounded-xl border-2 border-kc-ink bg-kc-ink px-5 py-3 text-kc-on-ink"
+            className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-kc-ink px-5 py-2.5 text-sm font-semibold text-kc-on-ink"
           >
             Open in your email app
           </a>

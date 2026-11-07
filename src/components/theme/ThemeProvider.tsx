@@ -31,12 +31,9 @@ function applyTheme(theme: Theme) {
 function getPreferredTheme(): Theme {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "light" || stored === "dark") return stored;
+    if (stored === "dark" || stored === "light") return stored;
   } catch {
     /* ignore */
-  }
-  if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    return "dark";
   }
   return "light";
 }

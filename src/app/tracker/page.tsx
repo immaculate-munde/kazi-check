@@ -4,7 +4,7 @@ import { Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
-import { SectionLabel } from "@/components/ui/SectionLabel";
+import { PageIntro } from "@/components/ui/PageIntro";
 import type { TrackerItem, TrackerStatus } from "@/lib/types";
 
 function TrackerPageInner() {
@@ -121,16 +121,15 @@ function TrackerPageInner() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-5 py-10 md:px-8 md:py-14">
-      <SectionLabel>Application safety tracker</SectionLabel>
-      <p className="mt-6 max-w-2xl text-lg text-kc-ink/80">
+    <div className="mx-auto w-full max-w-4xl px-5 py-8 md:px-8 md:py-12">
+      <PageIntro kicker="Applications" title="Track what you checked">
         Save opportunities you checked and track application, interview, and
         offer status.
-      </p>
+      </PageIntro>
 
-      <BrutalCard className="mt-8" tone="muted">
+      <BrutalCard className="mt-8" tone="white">
         {prefillNote ? (
-          <p className="mb-4 rounded-xl border-2 border-kc-ink bg-kc-lime/50 px-4 py-3 text-sm text-[#191a23]">
+          <p className="mb-4 rounded-xl bg-kc-muted px-4 py-3 text-sm text-kc-ink">
             {prefillNote}
           </p>
         ) : null}
@@ -140,20 +139,20 @@ function TrackerPageInner() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Job title"
-            className="rounded-xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-kc-ink"
+            className="kc-field"
           />
           <input
             required
             value={employer}
             onChange={(e) => setEmployer(e.target.value)}
             placeholder="Employer"
-            className="rounded-xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-kc-ink"
+            className="kc-field"
           />
           <input
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Notes"
-            className="rounded-xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-kc-ink md:col-span-2"
+            className="kc-field md:col-span-2"
           />
           <Button type="submit" variant="solid">
             Add opportunity
@@ -168,7 +167,7 @@ function TrackerPageInner() {
           items.map((item) => (
             <article
               key={item.id}
-              className="rounded-kc border-2 border-kc-ink bg-kc-white p-6 shadow-brutal"
+              className="kc-cream p-5"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -181,7 +180,7 @@ function TrackerPageInner() {
                     <p className="mt-1 text-sm text-kc-gray">{item.notes}</p>
                   ) : null}
                 </div>
-                <span className="rounded-full bg-kc-lime px-3 py-1 text-xs font-medium uppercase text-[#191a23]">
+                <span className="rounded-full bg-kc-muted px-3 py-1 text-xs font-medium uppercase text-kc-ink">
                   {item.status}
                 </span>
               </div>
@@ -200,7 +199,7 @@ function TrackerPageInner() {
                     key={s}
                     type="button"
                     onClick={() => updateStatus(item.id, s)}
-                    className="rounded-full border-2 border-kc-ink px-3 py-1 text-xs hover:bg-kc-muted"
+                    className="rounded-full border border-kc-ink/15 px-3 py-1 text-xs hover:bg-kc-muted"
                   >
                     {s}
                   </button>
@@ -208,7 +207,7 @@ function TrackerPageInner() {
                 <button
                   type="button"
                   onClick={() => remove(item.id)}
-                  className="rounded-full border-2 border-kc-ink px-3 py-1 text-xs text-red-600"
+                  className="rounded-full border border-red-200 px-3 py-1 text-xs text-red-700"
                 >
                   Delete
                 </button>

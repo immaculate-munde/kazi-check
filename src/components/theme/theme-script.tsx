@@ -1,6 +1,6 @@
-/** Inline script to avoid theme flash before React hydrates. */
+/** Apply stored theme before paint. Default is light glass. */
 export function ThemeScript() {
-  const code = `(function(){try{var t=localStorage.getItem('kc-theme');var d=t==='dark'||(t!=='light'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark';}else{document.documentElement.style.colorScheme='light';}}catch(e){}})();`;
+  const code = `(function(){try{var t=localStorage.getItem('kc-theme');if(t!=='dark'&&t!=='light')t='light';document.documentElement.classList.toggle('dark',t==='dark');document.documentElement.style.colorScheme=t;}catch(e){}})();`;
 
   return (
     <script

@@ -6,7 +6,7 @@ export function OfficialOrgSidebar({ check }: { check: CheckRecord }) {
   if (employer) {
     return (
       <section
-        className="rounded-3xl border border-kc-ink/10 bg-kc-white p-5 shadow-[0_8px_24px_rgba(25,26,35,0.05)]"
+        className="kc-cream min-w-0 p-4 sm:p-5"
         aria-labelledby="employer-link-title"
       >
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-kc-gray">
@@ -22,7 +22,7 @@ export function OfficialOrgSidebar({ check }: { check: CheckRecord }) {
           href={employer.careersUrl ?? employer.officialUrl}
           target="_blank"
           rel="noreferrer"
-          className="mt-4 flex min-h-11 items-center justify-between gap-3 rounded-xl bg-kc-ink px-4 py-3 text-sm font-semibold text-kc-on-ink hover:bg-kc-ink/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kc-ink"
+          className="mt-4 flex min-h-11 items-center justify-between gap-3 rounded-full bg-kc-ink px-4 py-3 text-sm font-semibold text-kc-on-ink hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kc-ink"
         >
           {employer.careersUrl ? "Open official careers page" : "Open official website"}
           <span aria-hidden="true">↗</span>
@@ -34,7 +34,7 @@ export function OfficialOrgSidebar({ check }: { check: CheckRecord }) {
     );
   }
   return (
-    <section className="rounded-3xl border border-kc-ink/10 bg-kc-muted/70 p-5">
+    <section className="kc-cream min-w-0 p-4 sm:p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-kc-gray">
         Verify independently
       </p>
