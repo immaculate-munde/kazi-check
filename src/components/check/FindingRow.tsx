@@ -31,7 +31,7 @@ export function FindingRow({
 }) {
   return (
     <article
-      className="kc-cream relative min-w-0 overflow-hidden p-3.5 pl-5 motion-safe:animate-[result-enter_350ms_ease-out_both] sm:p-4 sm:pl-5"
+      className="kc-glass relative min-w-0 overflow-hidden p-3.5 pl-5 motion-safe:animate-[result-enter_350ms_ease-out_both] sm:p-4 sm:pl-5"
       style={{ animationDelay: `${Math.min(index * 40, 240)}ms` }}
     >
       <span className={`absolute inset-y-0 left-0 w-1.5 ${barStyles[status]}`} aria-hidden="true" />

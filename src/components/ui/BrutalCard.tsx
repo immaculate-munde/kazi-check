@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 type Tone = "white" | "muted" | "lime" | "ink";
 
 const toneClass: Record<Tone, string> = {
-  white: "kc-cream",
-  muted: "bg-kc-muted text-kc-ink",
-  lime: "kc-cream",
+  white: "kc-glass text-foreground",
+  muted: "kc-tile text-foreground",
+  lime: "kc-glass text-foreground",
   ink: "kc-tile text-foreground",
 };
 

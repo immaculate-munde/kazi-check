@@ -38,7 +38,7 @@ export function RegistryTeaser() {
         <div className="grid gap-3 md:grid-cols-3">
           {items.map((item) => (
             <Link key={item.id} href={`/registry/${item.id}`} className="block h-full">
-              <article className="kc-cream flex h-full min-w-0 flex-col justify-between overflow-hidden p-5">
+              <article className="kc-glass flex h-full min-w-0 flex-col justify-between overflow-hidden p-5">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-kc-gray">
                     {item.kind} · {item.direction === "applicant" ? "applicant" : "recruiter"}

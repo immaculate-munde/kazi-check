@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export function SiteFooter() {
   return (
-    <footer className="mx-auto w-full max-w-[1120px] px-3 pb-4 md:px-5">
+    <footer className="mx-auto w-full max-w-[1400px] px-3 pb-4 md:px-5">
       <div className="kc-glass px-6 py-7 sm:px-8">
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
           <div className="max-w-md">

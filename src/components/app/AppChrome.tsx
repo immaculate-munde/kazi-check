@@ -9,7 +9,7 @@ import { MarketingHeader } from "@/components/marketing/MarketingHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 
 function isMarketing(path: string) {
-  return path === "/" || path === "/start";
+  return path === "/" || path === "/start" || path.startsWith("/start/");
 }
 
 export function AppChrome({ children }: { children: ReactNode }) {
@@ -17,26 +17,28 @@ export function AppChrome({ children }: { children: ReactNode }) {
 
   if (isMarketing(path)) {
     return (
-      <div className="kc-scene flex min-h-full flex-col">
+      <div className="kc-scene flex min-h-dvh flex-col">
         <MarketingHeader />
-        <main className="flex-1 px-3 pb-3 md:px-5 md:pb-5">
-          <div className="kc-stage mx-auto w-full max-w-[1120px] overflow-hidden">{children}</div>
+        <main className="flex flex-1 flex-col px-3 pb-3 md:px-5 md:pb-5">
+          <div className="kc-stage mx-auto flex w-full max-w-[1400px] flex-1 flex-col overflow-hidden">
+            {children}
+          </div>
         </main>
-        <SiteFooter />
+        {path === "/" ? <SiteFooter /> : null}
       </div>
     );
   }
 
   return (
-    <div className="kc-scene flex min-h-dvh flex-col gap-3 p-3 lg:flex-row md:gap-4 md:p-4">
+    <div className="kc-scene flex h-dvh min-h-dvh flex-col gap-3 overflow-hidden p-3 lg:flex-row md:gap-4 md:p-4">
       <Suspense fallback={<aside className="hidden w-[4.75rem] shrink-0 lg:block" />}>
         <AppSidebar />
       </Suspense>
-      <div className="kc-stage flex min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="kc-stage flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <Suspense fallback={null}>
           <WorkspaceHeader />
         </Suspense>
-        <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
       </div>
     </div>
   );

@@ -11,11 +11,11 @@ export function Hero() {
             Job-offer trust for Kenya
           </p>
           <h1 className="max-w-xl text-[2.35rem] font-semibold leading-[1.05] tracking-[-0.04em] text-foreground sm:text-5xl lg:text-6xl">
-            Check the advert before you pay anyone.
+            Verify first. Then decide.
           </h1>
           <p className="mt-5 max-w-lg text-base leading-7 text-foreground/70 sm:text-lg sm:leading-8">
-            Paste a job message. Get a clear verdict, the evidence, and the official
-            careers link — never a WhatsApp “HR” chat.
+            Job seekers check adverts before they pay. Recruiters check applicants
+            before they trust the file. Same engine. Never labelled SAFE.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button href="/start" variant="lime" className="min-h-12 px-7">

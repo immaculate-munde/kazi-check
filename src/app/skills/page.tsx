@@ -40,12 +40,12 @@ function SkillsForm() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-8 md:px-8 md:py-12">
+    <div className="kc-page grid gap-8 xl:grid-cols-[minmax(16rem,24rem)_minmax(0,1fr)] xl:items-start">
       <PageIntro kicker="After the trust gate" title="Skill match">
         Compare a job description with your CV. Compatibility is guidance, not a
         hiring probability.
       </PageIntro>
-      <BrutalCard tone="white" className="mt-8">
+      <BrutalCard tone="white">
         <form className="space-y-5" onSubmit={onSubmit}>
           <input
             value={jobTitle}

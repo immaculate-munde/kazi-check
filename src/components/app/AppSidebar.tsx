@@ -3,116 +3,154 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { FLOW_EXTRA, FLOW_STEPS, isFlowActive } from "@/lib/flow";
+import { useRole } from "@/components/role/RoleProvider";
+import { isFlowActive, stepsFor } from "@/lib/flow";
 
-const dock = [
-  ...FLOW_STEPS.map((step, index) => ({
-    ...step,
-    icon: [SearchIcon, UsersIcon, SendIcon, FileIcon, ListIcon][index] ?? SearchIcon,
-  })),
-  { ...FLOW_EXTRA, icon: FlagIcon },
-];
+const NAV_KEY = "kc-nav-collapsed";
 
 function DockLink({
   href,
   label,
+  hint,
   active,
+  collapsed,
   icon: Icon,
   onNavigate,
 }: {
   href: string;
   label: string;
+  hint?: string;
   active: boolean;
+  collapsed: boolean;
   icon: typeof SearchIcon;
   onNavigate?: () => void;
 }) {
   return (
     <Link
       href={href}
-      title={label}
+      title={hint ? `${label} — ${hint}` : label}
       aria-label={label}
       aria-current={active ? "page" : undefined}
       onClick={onNavigate}
-      className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl transition ${
+      className={`flex min-h-11 items-center gap-3 rounded-2xl transition ${
+        collapsed ? "w-11 justify-center px-0" : "w-full px-3"
+      } ${
         active
-          ? "bg-kc-cream text-kc-ink"
-          : "text-foreground/70 hover:bg-foreground/8 hover:text-foreground"
+          ? "bg-kc-teal text-white"
+          : "text-foreground/75 hover:bg-foreground/8 hover:text-foreground"
       }`}
     >
       <Icon />
+      {collapsed ? null : (
+        <span className="text-sm font-medium">{label}</span>
+      )}
     </Link>
   );
 }
 
-function NavBody({ onNavigate, labeled = false }: { onNavigate?: () => void; labeled?: boolean }) {
-  const path = usePathname();
+const ICON_BY_LABEL: Record<string, typeof HomeIcon> = {
+  Home: HomeIcon,
+  Check: SearchIcon,
+  Match: UsersIcon,
+  Apply: SendIcon,
+  Offer: FileIcon,
+  Track: ListIcon,
+  Registry: FlagIcon,
+};
 
-  return (
+export function AppSidebar() {
+  const path = usePathname();
+  const { role } = useRole();
+  const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const steps = stepsFor(role);
+
+  useEffect(() => {
+    try {
+      setCollapsed(localStorage.getItem(NAV_KEY) === "1");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  function toggleCollapsed() {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(NAV_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }
+
+  const nav = (
+    labeled: boolean,
+    onNavigate?: () => void,
+    isCollapsed = false,
+  ) => (
     <>
       <Link
-        href="/"
-        className={`inline-flex h-11 items-center justify-center overflow-hidden rounded-2xl bg-kc-cream ${labeled ? "w-auto gap-2 px-3" : "w-11"}`}
+        href="/home"
+        className={`inline-flex h-11 items-center overflow-hidden rounded-2xl bg-white/70 dark:bg-white/10 ${
+          labeled && !isCollapsed ? "w-full gap-2 px-3" : "w-11 justify-center"
+        }`}
         onClick={onNavigate}
         aria-label="Kazi Check home"
       >
         <Image src="/kazi-check-mark.png" alt="" width={379} height={501} className="h-7 w-auto object-contain" />
-        {labeled ? <span className="text-sm font-semibold text-kc-ink">Kazi Check</span> : null}
+        {labeled && !isCollapsed ? (
+          <span className="text-sm font-semibold text-foreground">Kazi Check</span>
+        ) : null}
       </Link>
 
-      <nav className={`mt-6 flex flex-col gap-1.5 ${labeled ? "w-full px-3" : "items-center"}`} aria-label="Workspace steps">
-        {dock.map((item) => {
-          const active = isFlowActive(path, item.prefix);
-          if (!labeled) {
-            return (
-              <DockLink
-                key={item.href}
-                href={item.href}
-                label={item.label}
-                icon={item.icon}
-                active={active}
-                onNavigate={onNavigate}
-              />
-            );
-          }
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              className={`flex min-h-11 items-center gap-3 rounded-2xl px-3 text-sm font-medium ${
-                active ? "bg-kc-cream text-kc-ink" : "text-foreground/75 hover:bg-foreground/8"
-              }`}
-            >
-              <Icon />
-              {item.label}
-            </Link>
-          );
-        })}
+      <nav className={`mt-6 flex flex-1 flex-col gap-1.5 ${isCollapsed ? "items-center" : "w-full px-1"}`} aria-label="Workspace">
+        {steps.map((item) => (
+          <DockLink
+            key={item.href}
+            href={item.href}
+            label={item.label}
+            hint={item.hint}
+            icon={ICON_BY_LABEL[item.label] ?? SearchIcon}
+            active={isFlowActive(path, item.prefix)}
+            collapsed={isCollapsed}
+            onNavigate={onNavigate}
+          />
+        ))}
       </nav>
     </>
   );
-}
-
-export function AppSidebar() {
-  const [open, setOpen] = useState(false);
 
   return (
     <>
-      <aside className="kc-dock sticky top-4 hidden h-[calc(100dvh-2rem)] w-[4.75rem] shrink-0 flex-col items-center overflow-y-auto py-4 lg:flex">
-        <NavBody />
+      <aside
+        className={`kc-dock hidden h-full shrink-0 flex-col py-4 lg:flex ${
+          collapsed ? "w-[4.75rem] items-center px-2" : "w-60 px-3"
+        }`}
+      >
+        {nav(true, undefined, collapsed)}
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-2xl text-sm font-medium text-foreground/70 hover:bg-foreground/8 hover:text-foreground"
+          aria-pressed={collapsed}
+          aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
+        >
+          {collapsed ? "»" : "« Collapse"}
+        </button>
       </aside>
 
       <div className="kc-glass sticky top-0 z-40 flex items-center justify-between gap-3 rounded-[1.35rem] px-3 py-2 lg:hidden">
         <button
           type="button"
-          className="min-h-11 rounded-full bg-kc-cream px-4 text-sm font-semibold text-kc-ink"
+          className="min-h-11 rounded-full bg-kc-teal px-4 text-sm font-semibold text-white"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
-          {open ? "Close" : "Steps"}
+          {open ? "Close" : "Menu"}
         </button>
         <ThemeToggle />
       </div>
@@ -120,12 +158,20 @@ export function AppSidebar() {
       {open ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <button type="button" className="absolute inset-0 bg-black/35" aria-label="Close menu" onClick={() => setOpen(false)} />
-          <aside className="kc-dock relative flex h-full w-[min(18rem,85vw)] flex-col gap-4 overflow-y-auto py-5">
-            <NavBody labeled onNavigate={() => setOpen(false)} />
+          <aside className="kc-dock relative flex h-full w-[min(18rem,85vw)] flex-col gap-4 overflow-y-auto px-3 py-5">
+            {nav(true, () => setOpen(false), false)}
           </aside>
         </div>
       ) : null}
     </>
+  );
+}
+
+function HomeIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M4 11.5 12 4l8 7.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
   );
 }
 

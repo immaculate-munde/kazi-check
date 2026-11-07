@@ -199,7 +199,7 @@ export default function BotPage() {
   const gate = selected?.gate ?? selected?.status;
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-5 py-8 md:px-8 md:py-12">
+    <div className="kc-page">
       <PageIntro kicker="Job Bot" title="Check a batch, then act on one ad at a time.">
         Blocked ads stay blocked. Eligible ads open the official careers portal
         with a draft — never WhatsApp, never an auto-submit.

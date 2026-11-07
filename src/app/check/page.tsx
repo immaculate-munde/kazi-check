@@ -26,13 +26,11 @@ export default async function CheckPage({
       : "Paste the job ad or recruiter message. You’ll get a risk verdict, evidence, and what to confirm yourself.";
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-8 md:px-8 md:py-12">
+    <div className="kc-page grid gap-8 xl:grid-cols-[minmax(16rem,24rem)_minmax(0,1fr)] xl:items-start">
       <PageIntro kicker={direction === "applicant" ? "Employers" : "Job seekers"} title={title}>
         {blurb}
       </PageIntro>
-      <div className="mt-8">
-        <CheckForm direction={direction} />
-      </div>
+      <CheckForm direction={direction} />
     </div>
   );
 }

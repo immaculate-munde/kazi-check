@@ -49,7 +49,7 @@ export function SubjectDetailClient({ subjectId }: { subjectId: string }) {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-3xl px-5 py-14">
+      <div className="kc-page">
         <p>{error}</p>
         <Button href="/registry" className="mt-6" variant="outline">
           Back
@@ -59,11 +59,11 @@ export function SubjectDetailClient({ subjectId }: { subjectId: string }) {
   }
 
   if (!subject) {
-    return <div className="mx-auto max-w-3xl px-5 py-14">Loading…</div>;
+    return <div className="kc-page">Loading…</div>;
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-10 md:px-8 md:py-14">
+    <div className="kc-page">
       <Link href="/registry" className="text-sm font-medium underline">
         ← Back to registry
       </Link>

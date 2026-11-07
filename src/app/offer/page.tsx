@@ -32,12 +32,12 @@ export default function OfferPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-8 md:px-8 md:py-12">
+    <div className="kc-page grid gap-8 xl:grid-cols-[minmax(16rem,24rem)_minmax(0,1fr)] xl:items-start">
       <PageIntro kicker="Post-offer" title="Check an offer letter">
         Paste an offer letter or HR email before you accept, pay, or share more
         personal information.
       </PageIntro>
-      <BrutalCard className="mt-8" tone="white">
+      <BrutalCard tone="white">
         <form className="space-y-5" onSubmit={onSubmit}>
           <textarea
             required

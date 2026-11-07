@@ -10,13 +10,13 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     <button
       type="button"
       onClick={toggleTheme}
-      className={`relative inline-flex h-9 w-[3.35rem] items-center rounded-full bg-foreground/10 p-1 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground ${className}`}
+      className={`relative inline-flex h-9 w-14 items-center rounded-full bg-foreground/10 p-1 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kc-teal ${className}`}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       title={isDark ? "Light mode" : "Dark mode"}
     >
       <span
-        className={`inline-flex h-7 w-7 items-center justify-center rounded-full bg-kc-cream text-kc-ink shadow-sm transition-transform ${
-          isDark ? "translate-x-[1.35rem]" : "translate-x-0"
+        className={`inline-flex h-7 w-7 items-center justify-center rounded-full bg-kc-teal text-white shadow-sm transition-transform ${
+          isDark ? "translate-x-5" : "translate-x-0"
         }`}
       >
         {isDark ? <SunIcon /> : <MoonIcon />}

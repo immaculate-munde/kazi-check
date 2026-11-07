@@ -121,7 +121,7 @@ function TrackerPageInner() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-5 py-8 md:px-8 md:py-12">
+    <div className="kc-page">
       <PageIntro kicker="Applications" title="Track what you checked">
         Save opportunities you checked and track application, interview, and
         offer status.
@@ -167,7 +167,7 @@ function TrackerPageInner() {
           items.map((item) => (
             <article
               key={item.id}
-              className="kc-cream p-5"
+              className="kc-glass p-5"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>

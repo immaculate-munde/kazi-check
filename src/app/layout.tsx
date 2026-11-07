@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import { AppChrome } from "@/components/app/AppChrome";
+import { RoleProvider } from "@/components/role/RoleProvider";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ThemeScript } from "@/components/theme/theme-script";
 import "./globals.css";
@@ -25,7 +26,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="relative min-h-full font-sans text-foreground">
         <ThemeProvider>
-          <AppChrome>{children}</AppChrome>
+          <RoleProvider>
+            <AppChrome>{children}</AppChrome>
+          </RoleProvider>
         </ThemeProvider>
       </body>
     </html>

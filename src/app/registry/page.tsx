@@ -31,7 +31,7 @@ export default function RegistryPage() {
   const empty = useMemo(() => !loading && items.length === 0, [loading, items]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-5 py-8 md:px-8 md:py-12">
+    <div className="kc-page">
       <PageIntro kicker="Public registry" title="Who has already been flagged?">
         Community-flagged recruiters and risky applicants. Counts update when
         people report a scam.
@@ -62,7 +62,7 @@ export default function RegistryPage() {
       <div className="mt-10 grid gap-6 md:grid-cols-2">
         {items.map((item) => (
           <Link key={item.id} href={`/registry/${item.id}`}>
-            <article className="kc-cream flex h-full min-w-0 flex-col justify-between overflow-hidden p-5 text-kc-ink transition hover:-translate-y-0.5 sm:p-6">
+            <article className="kc-glass flex h-full min-w-0 flex-col justify-between overflow-hidden p-5 text-foreground transition hover:-translate-y-0.5 sm:p-6">
               <div>
                 <p className="text-sm uppercase tracking-wide text-kc-gray">
                   {item.kind} ·{" "}

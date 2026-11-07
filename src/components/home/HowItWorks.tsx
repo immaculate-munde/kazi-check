@@ -34,7 +34,7 @@ export function HowItWorks() {
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((step) => (
-          <article key={step.n} className="kc-cream p-5 sm:p-6">
+          <article key={step.n} className="kc-glass p-5 sm:p-6">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-kc-muted text-sm font-semibold text-kc-ink">
               {step.n}
             </span>

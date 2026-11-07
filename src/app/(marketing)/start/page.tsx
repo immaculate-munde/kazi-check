@@ -1,53 +1,50 @@
-import Link from "next/link";
-import { PageIntro } from "@/components/ui/PageIntro";
+"use client";
 
-const paths = [
-  {
-    href: "/check?direction=job_offer",
-    label: "I have one advert",
-    body: "Paste a WhatsApp, SMS, or email. Get a verdict and the official careers page.",
-    step: "Start at Check",
-  },
-  {
-    href: "/bot",
-    label: "I have many ads",
-    body: "Upload a batch. Blocked ads stay blocked. Eligible ones open the official portal.",
-    step: "Start at Apply",
-  },
-  {
-    href: "/offer",
-    label: "I already have an offer letter",
-    body: "Read red flags before you accept, pay, or share more documents.",
-    step: "Start at Offer",
-  },
-  {
-    href: "/check?direction=applicant",
-    label: "I’m hiring — check an applicant",
-    body: "Paste outreach or CV claims. Same engine. Still never labelled SAFE.",
-    step: "Employer path",
-  },
-];
+import Link from "next/link";
+import { useRole } from "@/components/role/RoleProvider";
 
 export default function StartPage() {
+  const { setRole } = useRole();
+
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-10 md:px-8 md:py-14">
-      <PageIntro kicker="Onboarding" title="What do you have in front of you?">
-        Pick one. After this you land in the workspace, with the steps on the left: Check → Match → Apply → Offer → Track.
-      </PageIntro>
-      <ul className="mt-8 space-y-3">
-        {paths.map((item) => (
-          <li key={item.href}>
-            <Link
-              href={item.href}
-              className="kc-cream block p-5 transition hover:-translate-y-0.5"
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-kc-gray">{item.step}</p>
-              <h2 className="mt-2 text-xl font-semibold tracking-tight">{item.label}</h2>
-              <p className="mt-2 text-sm leading-6 text-kc-ink/70">{item.body}</p>
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <div className="kc-page mx-auto flex max-w-4xl flex-1 flex-col justify-center">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-foreground/45">Onboarding</p>
+      <h1 className="mt-3 max-w-xl text-3xl font-semibold tracking-tight text-foreground sm:text-5xl">
+        Who are you today?
+      </h1>
+      <p className="mt-3 max-w-lg text-base leading-7 text-foreground/70">
+        Two paths. A short setup. Then a dashboard with only the tools you need.
+      </p>
+      <div className="mt-10 grid gap-4 md:grid-cols-2">
+        <Link
+          href="/start/seeker"
+          onClick={() => setRole("seeker")}
+          className="kc-glass flex min-h-[220px] flex-col justify-between p-6 transition hover:-translate-y-0.5 sm:p-8"
+        >
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-kc-teal">Applier</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight">I’m applying for a job</h2>
+            <p className="mt-3 text-sm leading-6 text-foreground/70">
+              Check adverts, match your CV, apply on official portals, and read offer letters before you pay anyone.
+            </p>
+          </div>
+          <span className="mt-6 text-sm font-semibold text-kc-teal">Continue →</span>
+        </Link>
+        <Link
+          href="/start/recruiter"
+          onClick={() => setRole("recruiter")}
+          className="kc-glass flex min-h-[220px] flex-col justify-between p-6 transition hover:-translate-y-0.5 sm:p-8"
+        >
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-kc-teal">Recruiter</p>
+            <h2 className="mt-3 text-2xl font-semibold tracking-tight">I’m hiring</h2>
+            <p className="mt-3 text-sm leading-6 text-foreground/70">
+              Check applicant outreach and claims. Same engine. Still never labelled SAFE.
+            </p>
+          </div>
+          <span className="mt-6 text-sm font-semibold text-kc-teal">Continue →</span>
+        </Link>
+      </div>
     </div>
   );
 }

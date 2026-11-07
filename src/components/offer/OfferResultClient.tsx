@@ -38,7 +38,7 @@ export function OfferResultClient({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4 px-5 py-14" aria-busy="true" aria-label="Loading offer analysis">
+      <div className="kc-page space-y-4" aria-busy="true" aria-label="Loading offer analysis">
         <div className="h-44 animate-pulse rounded-3xl bg-kc-muted" />
         <div className="h-24 animate-pulse rounded-2xl bg-kc-muted" />
         <p className="sr-only" role="status">Loading offer findings…</p>
@@ -48,7 +48,7 @@ export function OfferResultClient({ id }: { id: string }) {
 
   if (error || !record) {
     return (
-      <div className="mx-auto max-w-3xl px-5 py-14 md:px-8" role="alert">
+      <div className="kc-page" role="alert">
         <BrutalCard tone="white" className="border-red-200 shadow-none">
           <p className="text-sm font-semibold uppercase tracking-wide text-red-800">Offer check unavailable</p>
           <h1 className="mt-2 text-2xl font-semibold">We couldn’t open this analysis.</h1>
@@ -65,7 +65,7 @@ export function OfferResultClient({ id }: { id: string }) {
   const mailto = `mailto:?subject=${encodeURIComponent(record.emailDraft.subject)}&body=${encodeURIComponent(record.emailDraft.body)}`;
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-10 md:px-8 md:py-14">
+    <div className="kc-page">
       <div className="mb-5"><SectionLabel>Offer report</SectionLabel></div>
       <RiskScoreBanner riskBand={record.riskBand} riskScore={record.riskScore} direction="offer_letter" />
       <BrutalCard className="mt-6" tone="white">

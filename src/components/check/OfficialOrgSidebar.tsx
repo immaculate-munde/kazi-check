@@ -6,7 +6,7 @@ export function OfficialOrgSidebar({ check }: { check: CheckRecord }) {
   if (employer) {
     return (
       <section
-        className="kc-cream min-w-0 p-4 sm:p-5"
+        className="kc-glass min-w-0 p-4 sm:p-5"
         aria-labelledby="employer-link-title"
       >
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-kc-gray">
@@ -34,7 +34,7 @@ export function OfficialOrgSidebar({ check }: { check: CheckRecord }) {
     );
   }
   return (
-    <section className="kc-cream min-w-0 p-4 sm:p-5">
+    <section className="kc-glass min-w-0 p-4 sm:p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.14em] text-kc-gray">
         Verify independently
       </p>

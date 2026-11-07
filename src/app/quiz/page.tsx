@@ -99,7 +99,7 @@ export default function QuizPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-8 md:px-8 md:py-12">
+    <div className="kc-page">
       <PageIntro kicker="Skill match" title="Domain quiz">
         Short assessments for practical reasoning. Pick a domain and answer a few
         questions.

@@ -324,7 +324,7 @@ export function EvidenceView({ checkId }: { checkId: string }) {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-6xl px-5 py-12 md:px-8" aria-busy="true" aria-label="Loading check results">
+      <div className="kc-page" aria-busy="true" aria-label="Loading check results">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
           <div className="space-y-5">
             <div className="h-48 animate-pulse rounded-3xl bg-kc-muted" />
@@ -340,7 +340,7 @@ export function EvidenceView({ checkId }: { checkId: string }) {
 
   if (error || !check) {
     return (
-      <div className="mx-auto max-w-3xl px-5 py-16 md:px-8" role="alert">
+      <div className="kc-page" role="alert">
         <BrutalCard tone="white" className="border-red-200 shadow-none">
           <p className="text-sm font-semibold uppercase tracking-wide text-red-800">Could not open this check</p>
           <h1 className="mt-2 text-2xl font-semibold">Your result is still safe to retry.</h1>
@@ -360,7 +360,7 @@ export function EvidenceView({ checkId }: { checkId: string }) {
     : "NEEDS INPUT";
 
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-6 px-5 py-8 md:px-8 md:py-10 lg:grid-cols-[minmax(0,1fr)_16.5rem] lg:items-start">
+    <div className="kc-page grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
       <div className="min-w-0">
         <div className="mb-5 flex flex-wrap items-center gap-3">
           <SectionLabel>Opportunity check</SectionLabel>
