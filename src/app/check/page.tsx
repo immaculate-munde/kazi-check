@@ -25,10 +25,29 @@ export default async function CheckPage({
       ? "Paste applicant outreach, CV claims, or a suspicious message. You’ll get a credibility verdict with evidence."
       : "Paste the job ad or recruiter message. You’ll get a risk verdict, evidence, and what to confirm yourself.";
 
+  const telegramUser = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME?.trim().replace(
+    /^@/,
+    "",
+  );
+
   return (
     <div className="kc-page grid gap-8 xl:grid-cols-[minmax(16rem,24rem)_minmax(0,1fr)] xl:items-start">
       <PageIntro kicker={direction === "applicant" ? "Employers" : "Job seekers"} title={title}>
         {blurb}
+        {telegramUser ? (
+          <p className="mt-4 text-sm text-kc-ink/70">
+            Also available on Telegram:{" "}
+            <a
+              href={`https://t.me/${telegramUser}`}
+              className="font-medium text-kc-ink underline decoration-kc-ink/30 underline-offset-4 hover:decoration-kc-ink"
+              target="_blank"
+              rel="noreferrer"
+            >
+              @{telegramUser}
+            </a>
+            . Paste an ad or upload a file in chat.
+          </p>
+        ) : null}
       </PageIntro>
       <CheckForm direction={direction} />
     </div>

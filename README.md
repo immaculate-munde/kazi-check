@@ -232,6 +232,7 @@ Expect **SCAM**. A clean Safaricom careers-portal ad should return **No red flag
 | `GET` | `/api/registry` | Subjects (`?direction=`) |
 | `POST` | `/api/subjects/flags` | Community flag (fingerprint dedupe) |
 | `POST` | `/api/webhooks/thrivewave/ussd` | USSD menu webhook |
+| `POST` | `/api/webhooks/telegram` | Telegram bot (paste/upload → check); see `infra/TELEGRAM.md` |
 
 ---
 
