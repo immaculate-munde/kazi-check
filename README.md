@@ -139,7 +139,7 @@ Built in now — not a wishlist. Honest about the limits.
 | **Flag dedupe** | Community flags hash `IP + user-agent` (SHA-256, truncated). No login in v1. Same fingerprint cannot spam the same subject. Flags require a **reason**. |
 | **Batch isolation** | One bad/unreadable ad fails that row; the rest of the batch continues. |
 
-**Not yet (do not assume these):** login/auth, encrypted-at-rest Postgres, IP rate limits, live WHOIS/RDAP, live ThriveWave HTTP, or a legal determination. The in-memory store is for local/demo; persistence in [#41](https://github.com/immaculate-munde/kazi-check/issues/41) must keep the PII mask.
+**Not yet (do not assume these):** login/auth, encrypted-at-rest Postgres beyond what you configure, IP rate limits, live WHOIS/RDAP, live ThriveWave HTTP, or a legal determination.
 
 ---
 
@@ -173,16 +173,20 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ```bash
 npm test          # vitest
-npm run seed      # in-memory registry samples
+npm run seed      # whitelist + registry samples (Postgres when DATABASE_URL is set)
 ```
 
-Optional Postgres (Prisma is ready; the app still runs in-memory today):
+Postgres (checks, registry, flags persist across restarts):
 
 ```bash
 docker compose up -d
-# set DATABASE_URL in .env
-npx prisma migrate dev
+# or: npx prisma dev --detach
+# set DATABASE_URL in .env to a postgresql:// URL
+npx prisma migrate deploy
+npm run seed
 ```
+
+Without `DATABASE_URL`, the app uses the in-memory store (data resets on restart). Skills / quiz / offers / tracker stay in memory for now.
 
 ### Smoke the engine
 
@@ -215,7 +219,7 @@ Expect **SCAM**. A clean Safaricom careers-portal ad should return **No red flag
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| `GET` | `/api/health` | Health |
+| `GET` | `/api/health` | Health (`store`: `prisma` or `memory`) |
 | `POST` | `/api/checks` | Extract → rules → verdict + **findings** |
 | `GET` | `/api/checks/[id]` | Fetch a check |
 | `POST` | `/api/checks/[id]/sms` | ThriveWave SMS (stub without keys) |
@@ -235,14 +239,14 @@ Expect **SCAM**. A clean Safaricom careers-portal ad should return **No red flag
 - Heuristic extract + deterministic **point table** (LLM/OCR must never pick the verdict)
 - Text-rules for fees, M-Pesa/till, urgency, fake salary, PIN/OTP/ID
 - Official listings index · OCR (tesseract.js / unpdf) · PII mask
-- In-memory store now · Prisma schema ready for Postgres
+- **Postgres via Prisma** when `DATABASE_URL` is set · in-memory fallback otherwise
 - ThriveWave SMS/USSD **stubs** until HTTP is wired
 
 ---
 
 ## What's next
 
-Stay on **this** repo. Next engine work is tracked in [#41](https://github.com/immaculate-munde/kazi-check/issues/41): organisation directory, registry statuses, persist scans, RDAP/MX, ThriveWave HTTP, then result UX.
+Stay on **this** repo. Next engine work is tracked in [#41](https://github.com/immaculate-munde/kazi-check/issues/41): organisation directory, registry statuses, RDAP/MX, ThriveWave HTTP, then result UX.
 
 Do **not**: switch to MySQL, store unmasked victim PII, scrape applications, or auto-submit via WhatsApp.
 
@@ -255,5 +259,6 @@ Issues and PRs are the source of truth — not this file for seat assignments.
 | Open | What |
 |------|------|
 | [#40](https://github.com/immaculate-munde/kazi-check/pull/40) | Job Bot + gated SCAM — **merged** |
+| [#42](https://github.com/immaculate-munde/kazi-check/pull/42) | Prisma persist + quiz/tracker — **merged** |
 | [#43](https://github.com/immaculate-munde/kazi-check/pull/43) | Text-rules + flagged/passed/unknown findings |
 | [#41](https://github.com/immaculate-munde/kazi-check/issues/41) | Steal-list from kazicheck — engine first, UI later |

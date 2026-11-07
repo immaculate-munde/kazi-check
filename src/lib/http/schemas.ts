@@ -30,7 +30,8 @@ export const quizSubmitSchema = z.object({
   answers: z.array(
     z.object({
       questionId: z.string(),
-      selectedIndex: z.number().int().nonnegative(),
+      // -1 means unanswered; scored as incorrect
+      selectedIndex: z.number().int().min(-1),
     }),
   ),
 });

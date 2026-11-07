@@ -1,16 +1,25 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useRef, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import type { TrackerItem, TrackerStatus } from "@/lib/types";
 
-export default function TrackerPage() {
+function TrackerPageInner() {
+  const search = useSearchParams();
+  const router = useRouter();
+  const autosaved = useRef(false);
+
   const [items, setItems] = useState<TrackerItem[]>([]);
   const [title, setTitle] = useState("");
   const [employer, setEmployer] = useState("");
   const [notes, setNotes] = useState("");
+  const [checkId, setCheckId] = useState<string | undefined>();
+  const [verificationResult, setVerificationResult] = useState("unchecked");
+  const [source, setSource] = useState("manual");
+  const [prefillNote, setPrefillNote] = useState<string | null>(null);
 
   async function load() {
     const res = await fetch("/api/tracker");
@@ -22,16 +31,76 @@ export default function TrackerPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    const qTitle = search.get("title")?.trim() ?? "";
+    const qEmployer = search.get("employer")?.trim() ?? "";
+    const qNotes = search.get("notes")?.trim() ?? "";
+    const qCheckId = search.get("checkId")?.trim() || undefined;
+    const qVerification = search.get("verificationResult")?.trim() || "unchecked";
+    const qSource = search.get("source")?.trim() || "manual";
+    const shouldAutosave = search.get("autosave") === "1";
+
+    if (!qTitle && !qEmployer && !qCheckId) return;
+
+    setTitle(qTitle);
+    setEmployer(qEmployer);
+    setNotes(qNotes);
+    setCheckId(qCheckId);
+    setVerificationResult(qVerification);
+    setSource(qSource);
+    setPrefillNote(
+      qTitle || qEmployer
+        ? "Prefilled from your check. Review and save, or edit first."
+        : null,
+    );
+
+    if (!shouldAutosave || autosaved.current) return;
+    if (!qTitle || !qEmployer) return;
+
+    autosaved.current = true;
+    void (async () => {
+      await fetch("/api/tracker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: qTitle,
+          employer: qEmployer,
+          notes: qNotes,
+          checkId: qCheckId,
+          verificationResult: qVerification,
+          source: qSource,
+          status: "saved",
+        }),
+      });
+      await load();
+      setPrefillNote("Saved from your check. Status starts as saved.");
+      router.replace("/tracker");
+    })();
+  }, [search, router]);
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     await fetch("/api/tracker", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, employer, notes, status: "saved" }),
+      body: JSON.stringify({
+        title,
+        employer,
+        notes,
+        checkId,
+        verificationResult,
+        source,
+        status: "saved",
+      }),
     });
     setTitle("");
     setEmployer("");
     setNotes("");
+    setCheckId(undefined);
+    setVerificationResult("unchecked");
+    setSource("manual");
+    setPrefillNote(null);
+    router.replace("/tracker");
     load();
   }
 
@@ -60,6 +129,11 @@ export default function TrackerPage() {
       </p>
 
       <BrutalCard className="mt-8" tone="muted">
+        {prefillNote ? (
+          <p className="mb-4 rounded-xl border-2 border-kc-ink bg-kc-lime/50 px-4 py-3 text-sm text-[#191a23]">
+            {prefillNote}
+          </p>
+        ) : null}
         <form className="grid gap-3 md:grid-cols-2" onSubmit={onSubmit}>
           <input
             required
@@ -149,5 +223,13 @@ export default function TrackerPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function TrackerPage() {
+  return (
+    <Suspense fallback={<div className="p-10">Loading tracker…</div>}>
+      <TrackerPageInner />
+    </Suspense>
   );
 }

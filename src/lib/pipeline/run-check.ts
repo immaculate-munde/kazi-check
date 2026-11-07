@@ -9,11 +9,15 @@ import {
 } from "@/lib/risk";
 import { detectSubjectsFromText } from "@/lib/subjects/normalize";
 import {
-  memoryCreateCheck,
-  memoryGetOrCreateSubject,
-  memoryLookupFlagCounts,
-} from "@/lib/store/memory";
-import { listingToEvidence, matchOfficialListing, officialCoverageLabel } from "@/lib/official";
+  createCheck,
+  getOrCreateSubject,
+  lookupFlagCounts,
+} from "@/lib/store";
+import {
+  listingToEvidence,
+  matchOfficialListing,
+  officialCoverageLabel,
+} from "@/lib/official";
 import { maskPii } from "@/lib/pii";
 import type { CheckDirection, CheckRecord, SubjectRef } from "@/lib/types";
 
@@ -31,7 +35,7 @@ export async function runCheckPipeline(input: {
 
   const extracted = await extractFromText(direction, rawText);
   const detected = detectSubjectsFromText(rawText);
-  const community = memoryLookupFlagCounts(detected);
+  const community = await lookupFlagCounts(detected);
 
   let result = runRules(
     direction,
@@ -44,7 +48,9 @@ export async function runCheckPipeline(input: {
   const listing = matchOfficialListing(extracted, rawText);
   const listingEvidence = listingToEvidence(listing);
   const listingGaps =
-    listing.result === "NO_LISTING_INDEXED" ? [listing.detail, officialCoverageLabel()] : [officialCoverageLabel()];
+    listing.result === "NO_LISTING_INDEXED"
+      ? [listing.detail, officialCoverageLabel()]
+      : [officialCoverageLabel()];
   result = withExtraEvidence(
     result,
     listingEvidence ? [listingEvidence] : [],
@@ -58,23 +64,24 @@ export async function runCheckPipeline(input: {
   const verdict = result.verdict;
   const { masked } = maskPii(rawText);
 
-  const subjects: SubjectRef[] = detected.map((d) => {
+  const subjects: SubjectRef[] = [];
+  for (const d of detected) {
     const summary =
       verdict === "SCAM" || verdict === "HIGH_RISK"
         ? `Auto-linked from ${verdict} check`
         : "";
-    const row = memoryGetOrCreateSubject(d.kind, d.key, direction, summary);
-    return {
+    const row = await getOrCreateSubject(d.kind, d.key, direction, summary);
+    subjects.push({
       id: row.id,
       kind: row.kind,
       key: row.key,
       flagCount: row.flagCount,
       topReasons: row.topReasons,
-    };
-  });
+    });
+  }
 
   if ((verdict === "SCAM" || verdict === "HIGH_RISK") && subjects.length === 0) {
-    const fallback = memoryGetOrCreateSubject(
+    const fallback = await getOrCreateSubject(
       "url",
       `check:${masked.slice(0, 48).replace(/\s+/g, "_")}`,
       direction,
@@ -89,7 +96,7 @@ export async function runCheckPipeline(input: {
     });
   }
 
-  return memoryCreateCheck({
+  return createCheck({
     direction: input.direction,
     rawText: masked,
     url: input.url,

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { memoryGetSubject } from "@/lib/store/memory";
+import { getSubject } from "@/lib/store";
 
 export const instant = false;
 
@@ -10,7 +10,7 @@ export async function GET(
   context: { params: Params },
 ) {
   const { subjectId } = await context.params;
-  const subject = memoryGetSubject(subjectId);
+  const subject = await getSubject(subjectId);
   if (!subject) {
     return NextResponse.json({ error: "Subject not found" }, { status: 404 });
   }

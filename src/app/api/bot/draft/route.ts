@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { canDraft } from "@/lib/bot/gate";
 import { draftApplication } from "@/lib/bot/draft";
-import { memoryGetBotItem, memoryGetCheck, memorySaveBotItem } from "@/lib/store/memory";
+import { getCheck } from "@/lib/store";
+import { memoryGetBotItem, memorySaveBotItem } from "@/lib/store/memory";
 
 export const instant = false;
 
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const check = item.checkId ? memoryGetCheck(item.checkId) : null;
+  const check = item.checkId ? await getCheck(item.checkId) : null;
   const jobTitle =
     check && "jobTitle" in check.extracted ? check.extracted.jobTitle : null;
   const draftText = draftApplication(item.maskedText, jobTitle);

@@ -1,10 +1,8 @@
 import { sendSms } from "@/lib/thrivewave";
+import { getSubject, listChecks, updateCheck } from "@/lib/store";
 import {
-  memoryGetSubject,
   memoryListBotQueue,
-  memoryListChecks,
   memorySaveBotItem,
-  memoryUpdateCheck,
 } from "@/lib/store/memory";
 import type { BotQueueItem, CheckRecord, SubjectKind } from "@/lib/types";
 
@@ -45,7 +43,7 @@ export async function dispatchRetroAlerts(input: {
   reason: string;
   dryRun?: boolean;
 }): Promise<RetroAlert[]> {
-  const subject = memoryGetSubject(input.subjectId);
+  const subject = await getSubject(input.subjectId);
   if (!subject) return [];
 
   const messageFor = (checkId: string) =>
@@ -56,7 +54,7 @@ export async function dispatchRetroAlerts(input: {
     });
 
   const alerts: RetroAlert[] = [];
-  const checks = memoryListChecks().filter((c) =>
+  const checks = (await listChecks()).filter((c) =>
     matchesSubject(c, subject.kind, subject.key),
   );
 
@@ -65,7 +63,7 @@ export async function dispatchRetroAlerts(input: {
     const message = messageFor(check.id);
     if (!input.dryRun) {
       await sendSms({ phone: check.notifyPhone, message });
-      memoryUpdateCheck(check.id, { retroAlertedAt: new Date().toISOString() });
+      await updateCheck(check.id, { retroAlertedAt: new Date().toISOString() });
     }
     alerts.push({
       checkId: check.id,

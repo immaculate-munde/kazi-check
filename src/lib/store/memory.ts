@@ -20,6 +20,7 @@ import type {
   Verdict,
   RiskBand,
 } from "@/lib/types";
+import { aggregateReasons } from "@/lib/store/reasons";
 import { MOCK_SEED_SUBJECTS } from "@/lib/store/seed-data";
 
 type SubjectRow = Omit<RegistrySubject, "recentFlags" | "topReasons"> & {
@@ -40,12 +41,15 @@ type MemoryDb = {
 
 const globalStore = globalThis as unknown as { __kcStore?: MemoryDb };
 
-function db(): MemoryDb {
-  if (!globalStore.__kcStore) {
+function ensureStore(): MemoryDb {
+  const existing = globalStore.__kcStore as MemoryDb | undefined;
+  if (!existing) {
     const subjects = new Map<string, SubjectRow>();
     for (const s of MOCK_SEED_SUBJECTS) {
       subjects.set(s.id, {
         ...s,
+        topReasons: s.topReasons ?? [],
+        recentFlags: s.recentFlags ?? [],
         flags: (s.recentFlags ?? []).map((f, i) => ({
           fingerprintHash: `seed_${s.id}_${i}`,
           reason: f.reason,
@@ -62,41 +66,52 @@ function db(): MemoryDb {
       tracker: new Map(),
       botQueue: new Map(),
     };
+    return globalStore.__kcStore;
   }
-  if (!globalStore.__kcStore.botQueue) {
-    globalStore.__kcStore.botQueue = new Map();
+
+  // HMR-safe: older process stores may miss newer maps/fields.
+  existing.checks ??= new Map();
+  existing.subjects ??= new Map();
+  existing.skillMatches ??= new Map();
+  existing.quizzes ??= new Map();
+  existing.offers ??= new Map();
+  existing.tracker ??= new Map();
+  existing.botQueue ??= new Map();
+
+  for (const [id, row] of existing.subjects) {
+    row.flags ??= [];
+    row.topReasons ??= aggregateReasons(row.flags);
+    row.recentFlags ??= row.flags
+      .slice()
+      .reverse()
+      .slice(0, 8)
+      .map((f) => ({ reason: f.reason, createdAt: f.createdAt }));
+    existing.subjects.set(id, row);
   }
-  return globalStore.__kcStore;
+
+  return existing;
 }
 
-function aggregateReasons(flags: { reason: string }[]): string[] {
-  const counts = new Map<string, number>();
-  for (const f of flags) {
-    const r = f.reason.trim();
-    if (!r) continue;
-    counts.set(r, (counts.get(r) ?? 0) + 1);
-  }
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([reason]) => reason)
-    .slice(0, 5);
+function db(): MemoryDb {
+  return ensureStore();
 }
 
 function toPublicSubject(row: SubjectRow): RegistrySubject {
+  const flags = row.flags ?? [];
   const topReasons =
-    row.topReasons.length > 0
+    (row.topReasons?.length ?? 0) > 0
       ? row.topReasons
-      : aggregateReasons(row.flags);
+      : aggregateReasons(flags);
   return {
     id: row.id,
     kind: row.kind,
     key: row.key,
     direction: row.direction,
-    flagCount: row.flagCount,
-    summary: row.summary,
+    flagCount: row.flagCount ?? flags.length,
+    summary: row.summary ?? "",
     lastFlaggedAt: row.lastFlaggedAt,
     topReasons,
-    recentFlags: row.flags
+    recentFlags: flags
       .slice()
       .reverse()
       .slice(0, 8)
