@@ -29,6 +29,8 @@ const POINTS = {
   officialDomain: -30,
   promptInjection: 20,
   routeMismatch: 30,
+  urgency: 5,
+  unrealisticSalary: 10,
 } as const;
 
 /**
