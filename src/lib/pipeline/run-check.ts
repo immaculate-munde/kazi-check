@@ -107,6 +107,7 @@ export async function runCheckPipeline(input: {
     recommendedAction: recommendedAction(verdict),
     extracted,
     evidence,
+    findings: result.findings,
     subjects,
     gaps: result.gaps,
     confirmYourself: confirmYourselfList(verdict),

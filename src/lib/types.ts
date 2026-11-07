@@ -32,6 +32,20 @@ export type EvidenceItem = {
   points?: number;
 };
 
+/** Every check reports one of these. Unknown is never a SCAM stamp. */
+export type FindingOutcome = "flagged" | "passed" | "unknown";
+
+export type Finding = {
+  checkKey: string;
+  title: string;
+  outcome: FindingOutcome;
+  /** Awarded only when outcome is flagged. Passed and unknown contribute 0. */
+  points: number;
+  explanation: string;
+  evidence: string | null;
+  source: string;
+};
+
 export type ExtractedOffer = {
   domain?: string | null;
   jobTitle?: string | null;
@@ -118,6 +132,7 @@ export type CheckRecord = {
   recommendedAction: string;
   extracted: Extracted;
   evidence: EvidenceItem[];
+  findings: Finding[];
   subjects: SubjectRef[];
   gaps: string[];
   confirmYourself: string[];

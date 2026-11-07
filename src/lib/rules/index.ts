@@ -4,15 +4,24 @@ import type {
   Extracted,
   ExtractedApplicant,
   ExtractedOffer,
+  Finding,
   Verdict,
 } from "@/lib/types";
 import { isFreeEmail } from "@/lib/subjects/normalize";
 import { DOMAIN_WHITELIST, IMPERSONATIONS } from "@/lib/rules/whitelist";
+import { findingsFromEvidence, mergeListingFinding } from "@/lib/rules/findings";
+import {
+  detectPaymentRequest,
+  detectSensitiveRequest,
+  detectUnrealisticSalary,
+  detectUrgency,
+} from "@/lib/rules/text-rules";
 
 export type RulesResult = {
   verdict: Verdict;
   score: number;
   evidence: EvidenceItem[];
+  findings: Finding[];
   gaps: string[];
 };
 
@@ -29,6 +38,8 @@ const POINTS = {
   officialDomain: -30,
   promptInjection: 20,
   routeMismatch: 30,
+  urgency: 5,
+  unrealisticSalary: 10,
 } as const;
 
 /**
@@ -75,7 +86,13 @@ export function runRules(
   const score = scoreEvidence(evidence);
   const gaps = collectGaps(direction, extracted, rawText, evidence);
   const verdict = toVerdict(score, evidence, gaps, rawText);
-  return { verdict, score, evidence, gaps };
+  const findings = findingsFromEvidence(
+    direction,
+    extracted,
+    evidence,
+    communityFlagCount,
+  );
+  return { verdict, score, evidence, findings, gaps };
 }
 
 /** Merge listing/OCR evidence and recompute points + stacked SCAM. */
@@ -103,7 +120,8 @@ export function withExtraEvidence(
   ];
   const score = scoreEvidence(evidence);
   const verdict = toVerdict(score, evidence, gaps, rawText);
-  return { verdict, score, evidence, gaps: [...new Set(gaps)] };
+  const findings = mergeListingFinding(result.findings, extra);
+  return { verdict, score, evidence, findings, gaps: [...new Set(gaps)] };
 }
 
 function offerRules(extracted: ExtractedOffer, rawText: string): EvidenceItem[] {
@@ -135,11 +153,13 @@ function offerRules(extracted: ExtractedOffer, rawText: string): EvidenceItem[] 
   const deferred = rawText.match(
     /refundable\s+deposit|after\s+training|after\s+(?:you\s+)?(?:join|start)|fee\s+later|pay\s+once\s+selected/i,
   );
+  const payment = detectPaymentRequest(rawText);
   const upfront =
     extracted.paymentTerms ||
     rawText.match(
       /(?:interview|medical|visa|training|application|registration|clearance|processing)\s+(?:fee|fees|payment)|(?:kes|ksh|kshs)\s*[\d,]+\s+(?:registration|clearance|medical|interview|fee|deposit)|(?:pay|send|deposit).{0,24}(?:kes|ksh|kshs)?\s*[\d,]+/i,
-    )?.[0];
+    )?.[0] ||
+    (payment.matched && !deferred ? payment.snippets[0] : null);
 
   if (deferred && !upfront) {
     evidence.push({
@@ -159,11 +179,14 @@ function offerRules(extracted: ExtractedOffer, rawText: string): EvidenceItem[] 
     });
   }
 
-  if (extracted.asksForId || asksForIdentity(rawText)) {
+  const sensitive = detectSensitiveRequest(rawText);
+  if (extracted.asksForId || asksForIdentity(rawText) || sensitive.matched) {
     evidence.push({
       ruleId: "id_asked_early",
       title: "ID, PIN or selfie asked early",
-      snippet: "Ad asks for identity documents or a selfie before an interview.",
+      snippet:
+        sensitive.snippets[0] ??
+        "Ad asks for identity documents or a selfie before an interview.",
       severity: "high",
       points: POINTS.idAskedEarly,
     });
@@ -202,13 +225,35 @@ function offerRules(extracted: ExtractedOffer, rawText: string): EvidenceItem[] 
     }
   }
 
-  if (/guaranteed job|no interview|send cv fee|visitor visa for work/i.test(rawText)) {
+  const salary = detectUnrealisticSalary(rawText);
+  if (salary.matched) {
+    evidence.push({
+      ruleId: "unrealistic_salary",
+      title: "Unrealistic or guaranteed earnings",
+      snippet: salary.snippets[0] ?? "Matched guaranteed or daily-pay phrasing",
+      severity: "medium",
+      points: POINTS.unrealisticSalary,
+    });
+  }
+
+  if (/send cv fee|visitor visa for work/i.test(rawText)) {
     evidence.push({
       ruleId: "high_risk_keyword",
       title: "High-risk keyword pattern",
       snippet: "Matched known scam phrasing",
       severity: "medium",
       points: 15,
+    });
+  }
+
+  const urgency = detectUrgency(rawText);
+  if (urgency.matched) {
+    evidence.push({
+      ruleId: "urgency",
+      title: "Pressure to act immediately",
+      snippet: urgency.snippets[0] ?? "Urgent or already-shortlisted language",
+      severity: "low",
+      points: POINTS.urgency,
     });
   }
 

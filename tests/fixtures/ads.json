@@ -5,6 +5,11 @@
     "text": "Acme Roads Authority hiring 800 staff. Apply on WhatsApp. Send ID and Ksh 1,500 registration."
   },
   {
+    "id": "kdf_mpesa",
+    "label": "scam",
+    "text": "Congratulations, you have been shortlisted for KDF recruitment. Pay KSh 3,500 processing fee via M-Pesa to secure your slot before Friday."
+  },
+  {
     "id": "kengen_lookalike",
     "label": "scam",
     "text": "KenGen is hiring! Apply at kencareers-apply.com and pay KES 3000 medical fee before interview. Contact hr@gmail.com"

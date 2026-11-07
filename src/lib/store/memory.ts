@@ -8,6 +8,7 @@ import type {
   Extracted,
   FlagInput,
   OfferAnalysisRecord,
+  Finding,
   OfficialListingMatch,
   QuizResult,
   RegistrySubject,
@@ -155,6 +156,7 @@ export function memoryCreateCheck(input: {
   recommendedAction: string;
   extracted: Extracted;
   evidence: EvidenceItem[];
+  findings: Finding[];
   subjects: SubjectRef[];
   gaps: string[];
   confirmYourself: string[];
@@ -173,6 +175,7 @@ export function memoryCreateCheck(input: {
     recommendedAction: input.recommendedAction,
     extracted: input.extracted,
     evidence: input.evidence,
+    findings: input.findings,
     subjects: input.subjects,
     gaps: input.gaps,
     confirmYourself: input.confirmYourself,
