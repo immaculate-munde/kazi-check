@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" className={`${spaceGrotesk.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <ThemeScript />
       </head>
