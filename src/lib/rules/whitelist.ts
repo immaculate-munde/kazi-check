@@ -1,4 +1,4 @@
-/** Seeded official Kenyan org domains — expand via seed script / DB. */
+/** Seeded official Kenyan org domains. Expand via seed script / DB. */
 export const DOMAIN_WHITELIST: Record<string, string> = {
   "kengen.co.ke": "KenGen",
   "safaricom.co.ke": "Safaricom",

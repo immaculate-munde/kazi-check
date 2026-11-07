@@ -8,7 +8,7 @@ export const instant = false;
 /**
  * ThriveWave USSD callback scaffold.
  * Expects JSON: { sessionId, msisdn, input, accessPoint? }
- * Responds with { body: "CON ..." | "END ..." } — adapt to provider schema later.
+ * Responds with { body: "CON ..." | "END ..." }. Adapt to provider schema later.
  */
 export async function POST(request: Request) {
   const secret = process.env.THRIVEWAVE_WEBHOOK_SECRET;
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 }
 
 function guessDirectionFromSessionBody(body: string): CheckDirection | null {
-  // After menu selection handleUssd returns END for text step — direction lost in stub.
+  // After menu selection handleUssd returns END for text step; direction lost in stub.
   // Scaffold: default job_offer for long free-text posts.
   void body;
   return "job_offer";

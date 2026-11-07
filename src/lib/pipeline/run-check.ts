@@ -1,5 +1,12 @@
 import { extractFromText } from "@/lib/extract";
 import { runRules } from "@/lib/rules";
+import {
+  recommendedAction,
+  scoreToRiskBand,
+  stampEvidence,
+  toRiskScore,
+  verdictFromBand,
+} from "@/lib/risk";
 import { detectSubjectsFromText } from "@/lib/subjects/normalize";
 import {
   memoryCreateCheck,
@@ -13,31 +20,38 @@ export async function runCheckPipeline(input: {
   text: string;
   url?: string;
 }): Promise<CheckRecord> {
+  const direction = input.direction === "offer_letter" ? "job_offer" : input.direction;
   const rawText = input.text.trim() || input.url || "";
   if (!rawText) {
     throw new Error("text or url is required");
   }
 
-  const extracted = await extractFromText(input.direction, rawText);
+  const extracted = await extractFromText(direction, rawText);
   const detected = detectSubjectsFromText(rawText);
 
-  const communityFlagCount = memoryLookupFlagCounts(detected);
-  const { verdict, score, evidence } = runRules(
-    input.direction,
+  const community = memoryLookupFlagCounts(detected);
+  const { score, evidence: rawEvidence } = runRules(
+    direction,
     extracted,
-    communityFlagCount,
+    community.count,
     rawText,
+    community.reasons,
   );
+
+  const evidence = stampEvidence(rawEvidence);
+  const riskScore = toRiskScore(score, evidence);
+  const riskBand = scoreToRiskBand(riskScore, evidence.length);
+  const verdict = verdictFromBand(input.direction, riskBand);
 
   const subjects: SubjectRef[] = detected.map((d) => {
     const summary =
-      verdict === "SCAM" || verdict === "HIGH_RISK"
+      verdict === "SCAM" || verdict === "HIGH_RISK" || verdict === "DO_NOT_PROCEED"
         ? `Auto-linked from ${verdict} check`
         : "";
     const row = memoryGetOrCreateSubject(
       d.kind,
       d.key,
-      input.direction,
+      direction,
       summary,
     );
     return {
@@ -45,10 +59,10 @@ export async function runCheckPipeline(input: {
       kind: row.kind,
       key: row.key,
       flagCount: row.flagCount,
+      topReasons: row.topReasons,
     };
   });
 
-  // Ensure high-risk checks bump visibility even without manual flag
   if (
     (verdict === "SCAM" || verdict === "HIGH_RISK") &&
     subjects.length === 0
@@ -56,7 +70,7 @@ export async function runCheckPipeline(input: {
     const fallback = memoryGetOrCreateSubject(
       "url",
       `check:${rawText.slice(0, 48).replace(/\s+/g, "_")}`,
-      input.direction,
+      direction,
       "Unstructured scam text",
     );
     subjects.push({
@@ -64,6 +78,7 @@ export async function runCheckPipeline(input: {
       kind: fallback.kind,
       key: fallback.key,
       flagCount: fallback.flagCount,
+      topReasons: fallback.topReasons,
     });
   }
 
@@ -73,6 +88,9 @@ export async function runCheckPipeline(input: {
     url: input.url,
     verdict,
     score,
+    riskScore,
+    riskBand,
+    recommendedAction: recommendedAction(riskBand),
     extracted,
     evidence,
     subjects,

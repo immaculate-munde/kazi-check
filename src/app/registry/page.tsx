@@ -51,7 +51,9 @@ export default function RegistryPage() {
             type="button"
             onClick={() => setTab(value)}
             className={`rounded-full border-2 border-kc-ink px-4 py-2 text-sm font-medium ${
-              tab === value ? "bg-kc-lime" : "bg-white hover:bg-kc-muted"
+              tab === value
+                ? "bg-kc-lime text-[#191a23]"
+                : "bg-kc-white text-kc-ink hover:bg-kc-muted"
             }`}
           >
             {label}
@@ -65,7 +67,7 @@ export default function RegistryPage() {
       <div className="mt-10 grid gap-6 md:grid-cols-2">
         {items.map((item) => (
           <Link key={item.id} href={`/registry/${item.id}`}>
-            <article className="flex h-full flex-col justify-between rounded-kc border-2 border-kc-ink bg-white p-8 shadow-brutal transition hover:-translate-y-0.5">
+            <article className="flex h-full flex-col justify-between rounded-kc border-2 border-kc-ink bg-kc-white p-8 text-kc-ink shadow-brutal transition hover:-translate-y-0.5">
               <div>
                 <p className="text-sm uppercase tracking-wide text-kc-gray">
                   {item.kind} ·{" "}
@@ -73,6 +75,12 @@ export default function RegistryPage() {
                 </p>
                 <h2 className="mt-2 break-all text-2xl font-medium">{item.key}</h2>
                 <p className="mt-4 text-kc-ink/75">{item.summary}</p>
+                {item.topReasons?.[0] ? (
+                  <p className="mt-3 text-sm">
+                    <span className="font-medium">Top reason:</span>{" "}
+                    {item.topReasons[0]}
+                  </p>
+                ) : null}
               </div>
               <div className="mt-6 flex items-center justify-between gap-3">
                 <FlagCountPill count={item.flagCount} />

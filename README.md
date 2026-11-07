@@ -46,7 +46,13 @@ npx prisma migrate dev
 
 ## App routes
 
-`/` · `/check?direction=` · `/checks/[id]` · `/registry` · `/registry/[subjectId]`
+| Route | Pillar |
+|-------|--------|
+| `/check` · `/checks/[id]` | Verify (pre-application) |
+| `/skills` · `/quiz` | Match |
+| `/offer` · `/offer/[id]` | Post-offer check + email draft |
+| `/tracker` | Application safety tracker |
+| `/registry` | Community flags **with reasons** |
 
 ## Team work
 

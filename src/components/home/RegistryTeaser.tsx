@@ -34,14 +34,19 @@ export function RegistryTeaser() {
       <div className="grid gap-6 lg:grid-cols-3">
         {items.map((item) => (
           <Link key={item.id} href={`/registry/${item.id}`}>
-            <article className="flex h-full flex-col justify-between rounded-kc border-2 border-kc-ink bg-kc-ink p-8 text-white shadow-brutal transition hover:-translate-y-0.5">
+            <article className="flex h-full flex-col justify-between rounded-kc border-2 border-kc-ink bg-kc-ink p-8 text-kc-on-ink shadow-brutal transition hover:-translate-y-0.5">
               <div>
-                <p className="text-sm uppercase tracking-wide text-white/60">
+                <p className="text-sm uppercase tracking-wide text-kc-on-ink/60">
                   {item.kind} ·{" "}
                   {item.direction === "applicant" ? "applicant" : "recruiter"}
                 </p>
                 <h3 className="mt-3 break-all text-xl font-medium">{item.key}</h3>
-                <p className="mt-4 text-white/75">{item.summary}</p>
+                <p className="mt-4 text-kc-on-ink/75">{item.summary}</p>
+                {item.topReasons?.[0] ? (
+                  <p className="mt-3 text-sm text-kc-on-ink/90">
+                    Why: {item.topReasons[0]}
+                  </p>
+                ) : null}
               </div>
               <div className="mt-6">
                 <FlagCountPill count={item.flagCount} />
