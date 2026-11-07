@@ -14,16 +14,26 @@ export function SubjectDetailClient({ subjectId }: { subjectId: string }) {
   const [reason, setReason] = useState("Asked for interview / application fee");
   const [flagMsg, setFlagMsg] = useState<string | null>(null);
 
-  async function load() {
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const res = await fetch(`/api/registry/${subjectId}`);
+      const data = await res.json();
+      if (cancelled) return;
+      if (!res.ok) setError(data.error ?? "Not found");
+      else setSubject(data);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [subjectId]);
+
+  async function reload() {
     const res = await fetch(`/api/registry/${subjectId}`);
     const data = await res.json();
     if (!res.ok) setError(data.error ?? "Not found");
     else setSubject(data);
   }
-
-  useEffect(() => {
-    load();
-  }, [subjectId]);
 
   async function flagAgain() {
     if (!subject) return;
@@ -43,7 +53,7 @@ export function SubjectDetailClient({ subjectId }: { subjectId: string }) {
           ? "You already flagged this from this browser."
           : `Flagged. Now ${data.flagCount} flags.`,
       );
-      load();
+      await reload();
     }
   }
 

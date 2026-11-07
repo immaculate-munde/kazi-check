@@ -38,12 +38,11 @@ export function Button(props: ButtonAsButton | ButtonAsLink) {
   }
 
   const buttonProps = props as ButtonAsButton;
-  const {
-    variant: _variant,
-    className: _className,
-    children: _children,
-    ...rest
-  } = buttonProps;
+  const rest = Object.fromEntries(
+    Object.entries(buttonProps).filter(
+      ([key]) => key !== "variant" && key !== "className" && key !== "children",
+    ),
+  ) as Omit<ButtonAsButton, "variant" | "className" | "children">;
   return (
     <button type={rest.type ?? "button"} className={classes} {...rest}>
       {children}

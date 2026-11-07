@@ -6,9 +6,11 @@ import type { EvidenceItem, GateResult, Verdict } from "@/lib/types";
  */
 export function gate(
   verdict: Verdict,
-  _evidence: EvidenceItem[],
-  _gaps: string[],
+  evidence: EvidenceItem[],
+  gaps: string[],
 ): GateResult {
+  void evidence;
+  void gaps;
   if (verdict === "SCAM" || verdict === "HIGH_RISK") return "BLOCKED";
   if (verdict === "CAUTION" || verdict === "UNSURE") return "NEEDS_CONFIRMATION";
   return "ELIGIBLE";

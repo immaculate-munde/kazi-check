@@ -137,16 +137,16 @@ export function storeBackend(): "prisma" | "memory" {
 }
 
 export async function saveBotItem(item: BotQueueItem): Promise<BotQueueItem> {
-  if (usePrisma()) return prismaSaveBotItem(item);
+  if (prismaEnabled()) return prismaSaveBotItem(item);
   return memorySaveBotItem(item);
 }
 
 export async function getBotItem(id: string): Promise<BotQueueItem | null> {
-  if (usePrisma()) return prismaGetBotItem(id);
+  if (prismaEnabled()) return prismaGetBotItem(id);
   return memoryGetBotItem(id);
 }
 
 export async function listBotQueue(): Promise<BotQueueItem[]> {
-  if (usePrisma()) return prismaListBotQueue();
+  if (prismaEnabled()) return prismaListBotQueue();
   return memoryListBotQueue();
 }

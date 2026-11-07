@@ -35,7 +35,8 @@ export function confirmYourselfList(verdict: Verdict): string[] {
 }
 
 /** Points are already 0-100 from the rules table. */
-export function toRiskScore(score: number, _evidence: EvidenceItem[]): number {
+export function toRiskScore(score: number, evidence: EvidenceItem[]): number {
+  void evidence;
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
