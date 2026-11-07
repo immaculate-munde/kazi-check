@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
-import { SectionLabel } from "@/components/ui/SectionLabel";
+import { PageIntro } from "@/components/ui/PageIntro";
 
 type Q = {
   id: string;
@@ -99,12 +99,11 @@ export default function QuizPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-10 md:px-8 md:py-14">
-      <SectionLabel>Domain quiz</SectionLabel>
-      <p className="mt-6 text-lg text-kc-ink/80">
+    <div className="kc-page">
+      <PageIntro kicker="Skill match" title="Domain quiz">
         Short assessments for practical reasoning. Pick a domain and answer a few
         questions.
-      </p>
+      </PageIntro>
 
       <div className="mt-6 flex flex-wrap gap-2">
         {[
@@ -118,16 +117,14 @@ export default function QuizPage() {
             key={d}
             type="button"
             onClick={() => setDomain(d)}
-            className={`rounded-full border-2 border-kc-ink px-4 py-2 text-sm ${
-              domain === d ? "bg-kc-lime text-[#191a23]" : "bg-kc-white"
-            }`}
+            className={`kc-tab ${domain === d ? "kc-tab-active" : ""}`}
           >
             {d}
           </button>
         ))}
       </div>
 
-      <BrutalCard className="mt-8 space-y-6" tone="muted">
+      <BrutalCard className="mt-8 space-y-6" tone="white">
         {loading ? <p className="text-sm text-kc-ink/70">Loading questions…</p> : null}
         {!loading && questions.length === 0 ? (
           <p className="text-sm text-red-600">
@@ -143,7 +140,7 @@ export default function QuizPage() {
               {q.options.map((opt, i) => (
                 <label
                   key={`${q.id}-${i}`}
-                  className="flex cursor-pointer items-center gap-3 rounded-xl border-2 border-kc-ink bg-kc-white px-3 py-2"
+                  className="flex cursor-pointer items-center gap-3 rounded-xl bg-kc-muted px-3 py-2.5"
                 >
                   <input
                     type="radio"

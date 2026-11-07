@@ -1,29 +1,53 @@
 @import "tailwindcss";
 
+/* Tailwind dark: follow the .dark class, not the OS. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --kc-lime: #b9ff66;
-  --kc-ink: #191a23;
-  --kc-on-ink: #ffffff;
-  --kc-muted: #f3f3f3;
-  --kc-white: #ffffff;
-  --kc-gray: #898989;
-  --kc-radius: 2.75rem;
-  --kc-radius-sm: 0.875rem;
-  --kc-shadow: 0 5px 0 0 #191a23;
-  --background: #ffffff;
-  --foreground: #191a23;
+  --kc-navy: #0e2748;
+  --kc-teal: #178a6c;
+  --kc-mint: #c8ebd8;
+  --kc-cream: rgba(255, 255, 255, 0.62);
+  --kc-cream-ink: #0e2748;
+  --kc-lime: #178a6c;
+  --kc-ink: #0e2748;
+  --kc-on-ink: #f4fbf7;
+  --kc-muted: rgba(14, 39, 72, 0.08);
+  --kc-white: rgba(255, 255, 255, 0.62);
+  --kc-gray: rgba(14, 39, 72, 0.58);
+  --kc-canvas: transparent;
+  --kc-glass: rgba(255, 255, 255, 0.28);
+  --kc-glass-border: rgba(255, 255, 255, 0.55);
+  --kc-glass-fallback: rgba(232, 244, 238, 0.92);
+  --kc-glass-shadow: 0 24px 64px rgba(14, 39, 72, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  --kc-radius: 1.5rem;
+  --kc-radius-sm: 1rem;
+  --kc-radius-lg: 2.25rem;
+  --kc-shadow: 0 18px 50px rgba(14, 39, 72, 0.12);
+  --background: #d7ece3;
+  --foreground: #0e2748;
 }
 
 .dark {
-  --kc-lime: #b9ff66;
-  --kc-ink: #e8e8e8;
-  --kc-on-ink: #12131a;
-  --kc-muted: #2c2d38;
-  --kc-white: #1c1d27;
-  --kc-gray: #a0a0a8;
-  --kc-shadow: 0 5px 0 0 #e8e8e8;
-  --background: #12131a;
-  --foreground: #e8e8e8;
+  --kc-navy: #0e2748;
+  --kc-teal: #2ec89a;
+  --kc-mint: #c8ebd8;
+  --kc-cream: rgba(14, 39, 72, 0.45);
+  --kc-cream-ink: #eaf6f0;
+  --kc-lime: #2ec89a;
+  --kc-ink: #eaf6f0;
+  --kc-on-ink: #071525;
+  --kc-muted: rgba(255, 255, 255, 0.08);
+  --kc-white: rgba(14, 39, 72, 0.45);
+  --kc-gray: rgba(234, 246, 240, 0.62);
+  --kc-canvas: transparent;
+  --kc-glass: rgba(8, 22, 44, 0.52);
+  --kc-glass-border: rgba(200, 235, 216, 0.16);
+  --kc-glass-fallback: rgba(8, 22, 44, 0.92);
+  --kc-glass-shadow: 0 28px 80px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --kc-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+  --background: #071525;
+  --foreground: #eaf6f0;
 }
 
 @theme inline {
@@ -35,22 +59,163 @@
   --color-kc-muted: var(--kc-muted);
   --color-kc-white: var(--kc-white);
   --color-kc-gray: var(--kc-gray);
-  --font-sans: var(--font-space-grotesk);
+  --color-kc-canvas: var(--kc-canvas);
+  --color-kc-cream: var(--kc-cream);
+  --color-kc-navy: var(--kc-navy);
+  --color-kc-teal: var(--kc-teal);
+  --color-kc-mint: var(--kc-mint);
+  --font-sans: var(--font-outfit);
   --radius-kc: var(--kc-radius);
   --radius-kc-sm: var(--kc-radius-sm);
+  --radius-kc-lg: var(--kc-radius-lg);
   --shadow-brutal: var(--kc-shadow);
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 1.5rem;
+  scroll-padding-top: 5rem;
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  color: var(--foreground);
+  font-family: var(--font-outfit), system-ui, sans-serif;
+  overflow-x: clip;
+  background: var(--background);
+}
+
+.kc-scene {
+  position: relative;
+  isolation: isolate;
+  min-height: 100%;
+  background-color: #b7d9cc;
+  background-image:
+    radial-gradient(1100px 640px at 82% 6%, rgba(200, 235, 216, 0.95), transparent 58%),
+    radial-gradient(900px 520px at 8% 92%, rgba(14, 39, 72, 0.22), transparent 52%),
+    linear-gradient(165deg, #d8efe6 0%, #b7d9cc 42%, #8ebfb0 100%);
+}
+
+.kc-scene::before {
+  content: "";
+  position: fixed;
+  inset: -12%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 30% 36%, rgba(255, 255, 255, 0.28), transparent 42%),
+    radial-gradient(ellipse at 82% 72%, rgba(14, 39, 72, 0.16), transparent 46%);
+  filter: blur(52px);
+}
+
+.dark .kc-scene {
+  background-color: #071525;
+  background-image:
+    radial-gradient(1100px 640px at 82% 6%, rgba(23, 138, 108, 0.22), transparent 58%),
+    radial-gradient(900px 520px at 8% 92%, rgba(0, 0, 0, 0.45), transparent 52%),
+    linear-gradient(165deg, #0e2748 0%, #071525 48%, #040d18 100%);
+}
+
+.kc-glass,
+.kc-stage,
+.kc-dock {
+  background: var(--kc-glass);
+  border: 1px solid var(--kc-glass-border);
+  box-shadow: var(--kc-glass-shadow);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+}
+
+.kc-stage {
+  border-radius: var(--kc-radius-lg);
+}
+
+.kc-dock {
+  border-radius: 2rem;
+}
+
+.kc-glass {
+  border-radius: var(--kc-radius-lg);
+}
+
+.kc-cream {
+  background: var(--kc-cream);
+  color: var(--kc-cream-ink);
+  border-radius: var(--kc-radius);
+  box-shadow: var(--kc-glass-shadow);
+  border: 1px solid var(--kc-glass-border);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+
+.kc-tile {
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  border-radius: 1.35rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.kc-page {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 100%;
+  padding: 1.5rem 1.25rem 2rem;
+}
+
+@media (min-width: 768px) {
+  .kc-page {
+    padding: 2rem 2rem 2.5rem;
+  }
+}
+
+.kc-field {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 1.15rem;
+  background: var(--kc-muted);
+  color: var(--foreground);
+  padding: 0.85rem 1rem;
+  outline: none;
+}
+
+.kc-field:focus {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--kc-teal) 55%, transparent);
+}
+
+.kc-tab {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.4rem 0.95rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--foreground) 62%, transparent);
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.kc-tab:hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 7%, transparent);
+}
+
+.kc-tab-active {
+  background: var(--kc-teal);
+  color: #f4fbf7;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .kc-glass,
+  .kc-stage,
+  .kc-dock,
+  .kc-cream {
+    background: var(--kc-glass-fallback);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -76,6 +241,6 @@ html {
 }
 
 ::selection {
-  background: var(--kc-lime);
-  color: #191a23;
+  background: color-mix(in srgb, var(--kc-teal) 28%, transparent);
+  color: var(--foreground);
 }

@@ -18,6 +18,7 @@ import {
   matchOfficialListing,
   officialCoverageLabel,
 } from "@/lib/official";
+import { collectDomainIntel } from "@/lib/intel/domain";
 import { maskPii } from "@/lib/pii";
 import type { CheckDirection, CheckRecord, SubjectRef } from "@/lib/types";
 
@@ -53,9 +54,10 @@ export async function runCheckPipeline(input: {
     listing.result === "NO_LISTING_INDEXED"
       ? [listing.detail, officialCoverageLabel()]
       : [officialCoverageLabel()];
+  const intel = await collectDomainIntel(extracted);
   result = withExtraEvidence(
     result,
-    listingEvidence ? [listingEvidence] : [],
+    [...(listingEvidence ? [listingEvidence] : []), ...intel.evidence],
     rawText,
     listingGaps,
   );

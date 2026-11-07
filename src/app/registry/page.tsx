@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { FlagCountPill } from "@/components/ui/FlagCountPill";
-import { SectionLabel } from "@/components/ui/SectionLabel";
+import { PageIntro } from "@/components/ui/PageIntro";
 import type { CheckDirection, RegistrySubject } from "@/lib/types";
 
 export default function RegistryPage() {
@@ -31,12 +31,11 @@ export default function RegistryPage() {
   const empty = useMemo(() => !loading && items.length === 0, [loading, items]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-5 py-10 md:px-8 md:py-14">
-      <SectionLabel>Public scam registry</SectionLabel>
-      <p className="mt-6 max-w-2xl text-lg text-kc-ink/80">
+    <div className="kc-page">
+      <PageIntro kicker="Public registry" title="Who has already been flagged?">
         Community-flagged recruiters and risky applicants. Counts update when
-        people tap Flag as scam.
-      </p>
+        people report a scam.
+      </PageIntro>
 
       <div className="mt-8 flex flex-wrap gap-2">
         {(
@@ -50,11 +49,7 @@ export default function RegistryPage() {
             key={value}
             type="button"
             onClick={() => setTab(value)}
-            className={`rounded-full border-2 border-kc-ink px-4 py-2 text-sm font-medium ${
-              tab === value
-                ? "bg-kc-lime text-[#191a23]"
-                : "bg-kc-white text-kc-ink hover:bg-kc-muted"
-            }`}
+            className={`kc-tab ${tab === value ? "kc-tab-active" : ""}`}
           >
             {label}
           </button>
@@ -67,7 +62,7 @@ export default function RegistryPage() {
       <div className="mt-10 grid gap-6 md:grid-cols-2">
         {items.map((item) => (
           <Link key={item.id} href={`/registry/${item.id}`}>
-            <article className="flex h-full flex-col justify-between rounded-kc border-2 border-kc-ink bg-kc-white p-8 text-kc-ink shadow-brutal transition hover:-translate-y-0.5">
+            <article className="kc-glass flex h-full min-w-0 flex-col justify-between overflow-hidden p-5 text-foreground transition hover:-translate-y-0.5 sm:p-6">
               <div>
                 <p className="text-sm uppercase tracking-wide text-kc-gray">
                   {item.kind} ·{" "}

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
-import { SectionLabel } from "@/components/ui/SectionLabel";
+import { PageIntro } from "@/components/ui/PageIntro";
 
 export default function OfferPage() {
   const router = useRouter();
@@ -32,13 +32,12 @@ export default function OfferPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-10 md:px-8 md:py-14">
-      <SectionLabel>Post-offer check</SectionLabel>
-      <p className="mt-6 text-lg text-kc-ink/80">
+    <div className="kc-page grid gap-8 xl:grid-cols-[minmax(16rem,24rem)_minmax(0,1fr)] xl:items-start">
+      <PageIntro kicker="Post-offer" title="Check an offer letter">
         Paste an offer letter or HR email before you accept, pay, or share more
         personal information.
-      </p>
-      <BrutalCard className="mt-8" tone="muted">
+      </PageIntro>
+      <BrutalCard tone="white">
         <form className="space-y-5" onSubmit={onSubmit}>
           <textarea
             required
@@ -46,10 +45,10 @@ export default function OfferPage() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Paste the employment offer text…"
-            className="w-full rounded-2xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-kc-ink"
+            className="kc-field leading-7"
           />
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          <Button type="submit" variant="solid" disabled={loading}>
+          <Button type="submit" variant="lime" disabled={loading}>
             {loading ? "Analyzing…" : "Analyse offer"}
           </Button>
         </form>

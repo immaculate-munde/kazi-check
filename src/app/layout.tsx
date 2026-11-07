@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Space_Grotesk } from "next/font/google";
-import { SiteFooter } from "@/components/SiteFooter";
-import { SiteHeader } from "@/components/SiteHeader";
+import { Outfit } from "next/font/google";
+import { AppChrome } from "@/components/app/AppChrome";
+import { RoleProvider } from "@/components/role/RoleProvider";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ThemeScript } from "@/components/theme/theme-script";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
@@ -25,15 +25,15 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" className={`${spaceGrotesk.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" className={`${outfit.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <ThemeScript />
       </head>
-      <body className="relative flex min-h-full flex-col bg-background font-sans text-foreground">
+      <body className="relative min-h-full font-sans text-foreground">
         <ThemeProvider>
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
+          <RoleProvider>
+            <AppChrome>{children}</AppChrome>
+          </RoleProvider>
         </ThemeProvider>
       </body>
     </html>

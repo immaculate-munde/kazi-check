@@ -1,5 +1,6 @@
 import { prismaEnabled } from "@/lib/db";
 import type {
+  BotQueueItem,
   CheckDirection,
   CheckRecord,
   EvidenceItem,
@@ -16,23 +17,29 @@ import type {
 import {
   memoryAddFlag,
   memoryCreateCheck,
+  memoryGetBotItem,
   memoryGetCheck,
   memoryGetOrCreateSubject,
   memoryGetSubject,
+  memoryListBotQueue,
   memoryListChecks,
   memoryListRegistry,
   memoryLookupFlagCounts,
+  memorySaveBotItem,
   memoryUpdateCheck,
 } from "@/lib/store/memory";
 import {
   prismaAddFlag,
   prismaCreateCheck,
+  prismaGetBotItem,
   prismaGetCheck,
   prismaGetOrCreateSubject,
   prismaGetSubject,
+  prismaListBotQueue,
   prismaListChecks,
   prismaListRegistry,
   prismaLookupFlagCounts,
+  prismaSaveBotItem,
   prismaUpdateCheck,
 } from "@/lib/store/prisma-store";
 
@@ -127,4 +134,19 @@ export async function lookupFlagCounts(
 
 export function storeBackend(): "prisma" | "memory" {
   return prismaEnabled() ? "prisma" : "memory";
+}
+
+export async function saveBotItem(item: BotQueueItem): Promise<BotQueueItem> {
+  if (usePrisma()) return prismaSaveBotItem(item);
+  return memorySaveBotItem(item);
+}
+
+export async function getBotItem(id: string): Promise<BotQueueItem | null> {
+  if (usePrisma()) return prismaGetBotItem(id);
+  return memoryGetBotItem(id);
+}
+
+export async function listBotQueue(): Promise<BotQueueItem[]> {
+  if (usePrisma()) return prismaListBotQueue();
+  return memoryListBotQueue();
 }

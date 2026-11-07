@@ -99,7 +99,7 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
   }
 
   return (
-    <BrutalCard tone="muted">
+    <BrutalCard tone="white">
       <form className="space-y-6" onSubmit={onSubmit}>
         <fieldset>
           <legend className="mb-3 text-sm font-semibold">
@@ -112,7 +112,7 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
                 type="button"
                 aria-pressed={channel === value}
                 onClick={() => selectChannel(value)}
-                className={`min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition duration-150 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kc-ink ${channel === value ? "border-kc-ink bg-kc-ink text-kc-on-ink" : "border-kc-ink/15 bg-kc-white text-kc-ink hover:bg-kc-muted"}`}
+                className={`min-h-11 rounded-full px-4 py-2 text-sm font-medium transition duration-150 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kc-ink ${channel === value ? "bg-kc-ink text-kc-on-ink" : "bg-kc-muted text-kc-ink hover:brightness-95"}`}
               >
                 {label}
               </button>
@@ -160,7 +160,7 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
             }}
             aria-describedby="ad-text-help"
             placeholder="Paste the complete message here…"
-            className="w-full resize-y rounded-2xl border border-kc-ink/15 bg-kc-white px-4 py-3.5 text-base leading-7 text-kc-ink outline-none transition focus:border-kc-ink focus:ring-2 focus:ring-kc-lime"
+            className="kc-field resize-y leading-7"
           />
           {!text.trim() && !url.trim() ? (
             <p className="mt-2 text-sm text-kc-gray" role="status">
@@ -185,7 +185,7 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
               setDemoLoaded(null);
             }}
             placeholder="https://…"
-            className="min-h-11 w-full rounded-2xl border border-kc-ink/15 bg-kc-white px-4 py-3.5 text-base text-kc-ink outline-none transition focus:border-kc-ink focus:ring-2 focus:ring-kc-lime"
+            className="kc-field"
           />
         </div>
 
@@ -198,7 +198,7 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
             type="file"
             accept=".txt,.md,.csv,.json,text/plain"
             onChange={(e) => onFile(e.target.files?.[0] ?? null)}
-            className="block min-h-11 w-full text-sm file:mr-3 file:min-h-11 file:rounded-xl file:border-0 file:bg-kc-white file:px-4 file:font-medium file:text-kc-ink"
+            className="block min-h-11 w-full text-sm file:mr-3 file:min-h-11 file:rounded-full file:border-0 file:bg-kc-muted file:px-4 file:font-medium file:text-kc-ink"
           />
           <p className="mt-2 text-sm leading-6 text-kc-gray">
             Text files only. Copy text from PDFs or screenshots before adding it.
@@ -215,7 +215,7 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="07XXXXXXXX"
-            className="min-h-11 w-full rounded-2xl border border-kc-ink/15 bg-kc-white px-4 py-3.5 text-base text-kc-ink outline-none transition focus:border-kc-ink focus:ring-2 focus:ring-kc-lime"
+            className="kc-field"
           />
         </div>
 
@@ -229,7 +229,7 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
         ) : null}
 
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button type="submit" variant="solid" disabled={submitting || (!text.trim() && !url.trim())}>
+          <Button type="submit" variant="lime" disabled={submitting || (!text.trim() && !url.trim())}>
             {submitting ? "Checking the details…" : "Run check"}
           </Button>
           <Button

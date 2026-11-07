@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildApplyPacket, recordApply } from "@/lib/bot/apply";
-import { getCheck } from "@/lib/store";
-import { memoryGetBotItem } from "@/lib/store/memory";
+import { getBotItem, getCheck } from "@/lib/store";
 
 export const instant = false;
 
@@ -13,7 +12,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const item = memoryGetBotItem(parsed.data.id);
+  const item = await getBotItem(parsed.data.id);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const check = item.checkId ? await getCheck(item.checkId) : null;

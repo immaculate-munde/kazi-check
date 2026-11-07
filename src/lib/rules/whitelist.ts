@@ -48,8 +48,13 @@ export const OFFICIAL_ORGANIZATIONS = [
   {
     name: "Kenya Defence Forces",
     domains: ["mod.go.ke"],
-    aliases: ["kenya defence forces", "kdf", "ministry of defence"],
-    careersUrl: null,
+    aliases: [
+      "kdf",
+      "kenya defence forces",
+      "ministry of defence",
+      "kenya ministry of defence",
+    ],
+    careersUrl: "https://mod.go.ke",
     officialUrl: "https://mod.go.ke/",
   },
 ] as const;

@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
-import { SectionLabel } from "@/components/ui/SectionLabel";
+import { PageIntro } from "@/components/ui/PageIntro";
 
 function SkillsForm() {
   const router = useRouter();
@@ -40,19 +40,18 @@ function SkillsForm() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-10 md:px-8 md:py-14">
-      <SectionLabel>Skill Match</SectionLabel>
-      <p className="mt-6 text-lg text-kc-ink/80">
+    <div className="kc-page grid gap-8 xl:grid-cols-[minmax(16rem,24rem)_minmax(0,1fr)] xl:items-start">
+      <PageIntro kicker="After the trust gate" title="Skill match">
         Compare a job description with your CV. Compatibility is guidance, not a
         hiring probability.
-      </p>
-      <BrutalCard tone="muted" className="mt-8">
+      </PageIntro>
+      <BrutalCard tone="white">
         <form className="space-y-5" onSubmit={onSubmit}>
           <input
             value={jobTitle}
             onChange={(e) => setJobTitle(e.target.value)}
             placeholder="Job title (optional)"
-            className="w-full rounded-2xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-kc-ink"
+            className="kc-field"
           />
           <textarea
             required
@@ -60,7 +59,7 @@ function SkillsForm() {
             value={jobText}
             onChange={(e) => setJobText(e.target.value)}
             placeholder="Paste the job description…"
-            className="w-full rounded-2xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-kc-ink"
+            className="kc-field"
           />
           <textarea
             required
@@ -68,10 +67,10 @@ function SkillsForm() {
             value={cvText}
             onChange={(e) => setCvText(e.target.value)}
             placeholder="Paste your CV or skills summary…"
-            className="w-full rounded-2xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-kc-ink"
+            className="kc-field"
           />
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          <Button type="submit" variant="solid" disabled={loading}>
+          <Button type="submit" variant="lime" disabled={loading}>
             {loading ? "Matching…" : "Run skill match"}
           </Button>
         </form>

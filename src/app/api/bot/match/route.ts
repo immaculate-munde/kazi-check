@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { canDraft } from "@/lib/bot/gate";
 import { runSkillMatch } from "@/lib/skills/match";
-import { memoryGetBotItem, memorySaveSkillMatch } from "@/lib/store/memory";
+import { getBotItem } from "@/lib/store";
+import { memorySaveSkillMatch } from "@/lib/store/memory";
 
 export const instant = false;
 
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const item = memoryGetBotItem(parsed.data.id);
+  const item = await getBotItem(parsed.data.id);
   if (!item?.gate) {
     return NextResponse.json({ error: "Ad not ready" }, { status: 400 });
   }

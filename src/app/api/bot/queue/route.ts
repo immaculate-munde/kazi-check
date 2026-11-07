@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { memoryListBotQueue } from "@/lib/store/memory";
+import { listBotQueue } from "@/lib/store";
 import { queueTable } from "@/lib/bot/process";
 
 export const instant = false;
 
 export async function GET() {
-  const items = memoryListBotQueue();
+  const items = await listBotQueue();
   return NextResponse.json({ items, table: queueTable(items) });
 }

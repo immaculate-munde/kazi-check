@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ipRateLimitResponse } from "@/lib/http/rate-limit";
 import { createCheckSchema } from "@/lib/http/schemas";
 import { runCheckPipeline } from "@/lib/pipeline/run-check";
 import { formatVerdictSms, sendSms } from "@/lib/thrivewave";
@@ -6,6 +7,8 @@ import { formatVerdictSms, sendSms } from "@/lib/thrivewave";
 export const instant = false;
 
 export async function POST(request: Request) {
+  const limited = ipRateLimitResponse(request);
+  if (limited) return limited;
   try {
     const json = await request.json();
     const parsed = createCheckSchema.safeParse(json);

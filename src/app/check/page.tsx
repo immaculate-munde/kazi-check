@@ -1,5 +1,5 @@
 import { CheckForm } from "@/components/check/CheckForm";
-import { SectionLabel } from "@/components/ui/SectionLabel";
+import { PageIntro } from "@/components/ui/PageIntro";
 import type { CheckDirection } from "@/lib/types";
 
 export const instant = false;
@@ -26,12 +26,11 @@ export default async function CheckPage({
       : "Paste the job ad or recruiter message. You’ll get a risk verdict, evidence, and what to confirm yourself.";
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-10 md:px-8 md:py-14">
-      <SectionLabel>{title}</SectionLabel>
-      <p className="mt-6 text-lg text-kc-ink/80">{blurb}</p>
-      <div className="mt-10">
-        <CheckForm direction={direction} />
-      </div>
+    <div className="kc-page grid gap-8 xl:grid-cols-[minmax(16rem,24rem)_minmax(0,1fr)] xl:items-start">
+      <PageIntro kicker={direction === "applicant" ? "Employers" : "Job seekers"} title={title}>
+        {blurb}
+      </PageIntro>
+      <CheckForm direction={direction} />
     </div>
   );
 }

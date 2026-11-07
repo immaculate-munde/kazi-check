@@ -10,7 +10,11 @@ import type {
 } from "@/lib/types";
 import { isFreeEmail } from "@/lib/subjects/normalize";
 import { DOMAIN_WHITELIST, IMPERSONATIONS } from "@/lib/rules/whitelist";
-import { findingsFromEvidence, mergeListingFinding } from "@/lib/rules/findings";
+import {
+  findingsFromEvidence,
+  mergeIntelFindings,
+  mergeListingFinding,
+} from "@/lib/rules/findings";
 import {
   detectPaymentRequest,
   detectSensitiveRequest,
@@ -131,7 +135,10 @@ export function withExtraEvidence(
   ];
   const score = scoreEvidence(evidence);
   const verdict = toVerdict(score, evidence, gaps, rawText);
-  const findings = mergeListingFinding(result.findings, extra);
+  const findings = mergeIntelFindings(
+    mergeListingFinding(result.findings, extra),
+    extra,
+  );
   return { verdict, score, evidence, findings, gaps: [...new Set(gaps)] };
 }
 
@@ -265,16 +272,6 @@ function offerRules(extracted: ExtractedOffer, rawText: string): EvidenceItem[] 
       snippet: urgency.snippets[0] ?? "Urgent or already-shortlisted language",
       severity: "low",
       points: POINTS.urgency,
-    });
-  }
-
-  if (domain && process.env.WHOIS_API_KEY) {
-    evidence.push({
-      ruleId: "whois_age",
-      title: "WHOIS age (stub)",
-      snippet: "WHOIS integration pending",
-      severity: "low",
-      points: 0,
     });
   }
 

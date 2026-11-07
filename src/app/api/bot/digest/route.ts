@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sendBatchDigest } from "@/lib/bot/digest";
-import { memoryListBotQueue, memorySaveBotItem } from "@/lib/store/memory";
+import { listBotQueue, saveBotItem } from "@/lib/store";
 
 export const instant = false;
 
@@ -20,12 +20,16 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "phone is required" }, { status: 400 });
   }
-  const items = memoryListBotQueue().map((item) => {
-    if (item.notifyPhone) return item;
+  const queued = await listBotQueue();
+  const items = [];
+  for (const item of queued) {
+    if (item.notifyPhone) {
+      items.push(item);
+      continue;
+    }
     const next = { ...item, notifyPhone: parsed.data.phone };
-    memorySaveBotItem(next);
-    return next;
-  });
+    items.push(await saveBotItem(next));
+  }
   const result = await sendBatchDigest({
     phone: parsed.data.phone,
     items,

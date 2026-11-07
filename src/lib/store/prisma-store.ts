@@ -1,4 +1,6 @@
 import type {
+  ApplyPacket,
+  BotQueueItem,
   CheckDirection,
   CheckRecord,
   EvidenceItem,
@@ -462,4 +464,93 @@ export async function prismaLookupFlagCounts(
     }
   }
   return { count: max, reasons, status, published: rows.length > 0 };
+}
+
+function mapBotItem(row: {
+  id: string;
+  sourceType: string;
+  filename: string | null;
+  status: string;
+  maskedText: string;
+  checkId: string | null;
+  verdict: string | null;
+  riskScore: number | null;
+  flaggedCount: number | null;
+  unknownCount: number | null;
+  gate: string | null;
+  reason: string | null;
+  gaps: unknown;
+  confirmedGaps: unknown;
+  draftText: string | null;
+  apply: unknown;
+  notifyPhone: string | null;
+  retroAlertedAt: Date | null;
+  error: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): BotQueueItem {
+  return {
+    id: row.id,
+    sourceType: row.sourceType as BotQueueItem["sourceType"],
+    filename: row.filename ?? undefined,
+    status: row.status as BotQueueItem["status"],
+    maskedText: row.maskedText,
+    checkId: row.checkId ?? undefined,
+    verdict: (row.verdict as BotQueueItem["verdict"]) ?? undefined,
+    riskScore: row.riskScore ?? undefined,
+    flaggedCount: row.flaggedCount ?? undefined,
+    unknownCount: row.unknownCount ?? undefined,
+    gate: (row.gate as BotQueueItem["gate"]) ?? undefined,
+    reason: row.reason ?? undefined,
+    gaps: (row.gaps as string[]) ?? [],
+    confirmedGaps: (row.confirmedGaps as string[]) ?? undefined,
+    draftText: row.draftText ?? undefined,
+    apply: (row.apply as ApplyPacket) ?? undefined,
+    notifyPhone: row.notifyPhone ?? undefined,
+    retroAlertedAt: row.retroAlertedAt?.toISOString(),
+    error: row.error ?? undefined,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+export async function prismaSaveBotItem(item: BotQueueItem): Promise<BotQueueItem> {
+  const data = {
+    sourceType: item.sourceType,
+    filename: item.filename ?? null,
+    status: item.status,
+    maskedText: item.maskedText,
+    checkId: item.checkId ?? null,
+    verdict: item.verdict ?? null,
+    riskScore: item.riskScore ?? null,
+    flaggedCount: item.flaggedCount ?? null,
+    unknownCount: item.unknownCount ?? null,
+    gate: item.gate ?? null,
+    reason: item.reason ?? null,
+    gaps: item.gaps,
+    confirmedGaps: item.confirmedGaps ?? undefined,
+    draftText: item.draftText ?? null,
+    apply: item.apply ? (item.apply as object) : undefined,
+    notifyPhone: item.notifyPhone ?? null,
+    retroAlertedAt: item.retroAlertedAt ? new Date(item.retroAlertedAt) : null,
+    error: item.error ?? null,
+  };
+  const row = await prisma.botQueueItem.upsert({
+    where: { id: item.id },
+    create: { id: item.id, ...data, createdAt: new Date(item.createdAt) },
+    update: data,
+  });
+  return mapBotItem(row);
+}
+
+export async function prismaGetBotItem(id: string): Promise<BotQueueItem | null> {
+  const row = await prisma.botQueueItem.findUnique({ where: { id } });
+  return row ? mapBotItem(row) : null;
+}
+
+export async function prismaListBotQueue(): Promise<BotQueueItem[]> {
+  const rows = await prisma.botQueueItem.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(mapBotItem);
 }

@@ -18,11 +18,11 @@ export function SkillResultClient({ id }: { id: string }) {
   }, [id]);
 
   if (!record) {
-    return <div className="mx-auto max-w-3xl px-5 py-14">Loading skill match…</div>;
+    return <div className="kc-page">Loading skill match…</div>;
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-5 py-10 md:px-8 md:py-14">
+    <div className="kc-page">
       <SectionLabel>Skill Match report</SectionLabel>
       <BrutalCard className="mt-8" tone="white">
         <h1 className="text-3xl font-medium">{record.jobTitle}</h1>

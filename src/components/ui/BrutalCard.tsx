@@ -3,10 +3,10 @@ import type { ReactNode } from "react";
 type Tone = "white" | "muted" | "lime" | "ink";
 
 const toneClass: Record<Tone, string> = {
-  white: "bg-kc-white text-kc-ink",
-  muted: "bg-kc-muted text-kc-ink",
-  lime: "bg-kc-lime text-kc-ink",
-  ink: "bg-kc-ink text-kc-on-ink",
+  white: "kc-glass text-foreground",
+  muted: "kc-tile text-foreground",
+  lime: "kc-glass text-foreground",
+  ink: "kc-tile text-foreground",
 };
 
 export function BrutalCard({
@@ -19,9 +19,7 @@ export function BrutalCard({
   className?: string;
 }) {
   return (
-    <div
-      className={`rounded-kc border-2 border-kc-ink p-8 shadow-brutal md:p-10 ${toneClass[tone]} ${className}`}
-    >
+    <div className={`overflow-hidden rounded-[1.5rem] p-5 sm:p-6 ${toneClass[tone]} ${className}`}>
       {children}
     </div>
   );
