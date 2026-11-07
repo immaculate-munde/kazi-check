@@ -4,10 +4,12 @@ import type {
   Extracted,
   ExtractedApplicant,
   ExtractedOffer,
+  Finding,
   Verdict,
 } from "@/lib/types";
 import { isFreeEmail } from "@/lib/subjects/normalize";
 import { DOMAIN_WHITELIST, IMPERSONATIONS } from "@/lib/rules/whitelist";
+import { findingsFromEvidence, mergeListingFinding } from "@/lib/rules/findings";
 import {
   detectPaymentRequest,
   detectSensitiveRequest,
@@ -19,6 +21,7 @@ export type RulesResult = {
   verdict: Verdict;
   score: number;
   evidence: EvidenceItem[];
+  findings: Finding[];
   gaps: string[];
 };
 
@@ -83,7 +86,13 @@ export function runRules(
   const score = scoreEvidence(evidence);
   const gaps = collectGaps(direction, extracted, rawText, evidence);
   const verdict = toVerdict(score, evidence, gaps, rawText);
-  return { verdict, score, evidence, gaps };
+  const findings = findingsFromEvidence(
+    direction,
+    extracted,
+    evidence,
+    communityFlagCount,
+  );
+  return { verdict, score, evidence, findings, gaps };
 }
 
 /** Merge listing/OCR evidence and recompute points + stacked SCAM. */
@@ -111,7 +120,8 @@ export function withExtraEvidence(
   ];
   const score = scoreEvidence(evidence);
   const verdict = toVerdict(score, evidence, gaps, rawText);
-  return { verdict, score, evidence, gaps: [...new Set(gaps)] };
+  const findings = mergeListingFinding(result.findings, extra);
+  return { verdict, score, evidence, findings, gaps: [...new Set(gaps)] };
 }
 
 function offerRules(extracted: ExtractedOffer, rawText: string): EvidenceItem[] {
