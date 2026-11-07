@@ -160,7 +160,7 @@ function offerFindings(
         : emailOutcome === "unknown"
           ? "No recruiter email address was provided or found, so the sender domain could not be checked."
           : "No free-email-for-corporate mismatch was detected.",
-      freeEmail?.snippet ?? extracted.emails.join(", ") || null,
+      freeEmail?.snippet ?? (extracted.emails.join(", ") || null),
       ORG,
     ),
     row(
@@ -259,7 +259,7 @@ function applicantFindings(
         : extracted.emails.length
           ? "No free-email-vs-employer mismatch was detected."
           : "No applicant email was found, so the sender domain could not be checked.",
-      freeEmail?.snippet ?? extracted.emails.join(", ") || null,
+      freeEmail?.snippet ?? (extracted.emails.join(", ") || null),
       ORG,
     ),
     row(
