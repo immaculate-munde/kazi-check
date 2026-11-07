@@ -1,9 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const sendMessage = vi.fn(async () => ({}));
-
 vi.mock("@/lib/telegram/client", () => ({
-  sendMessage: (...args: unknown[]) => sendMessage(...args),
+  sendMessage: vi.fn(async () => ({})),
   sendDocument: vi.fn(async () => ({})),
   getFileBuffer: vi.fn(),
 }));
@@ -13,7 +11,7 @@ vi.mock("@/lib/pipeline/run-check", () => ({
     id: `check_${direction}`,
     direction,
     verdict: text.includes("fee") ? "SCAM" : "UNSURE",
-    riskBand: text.includes("fee") ? "HIGH" : "MEDIUM",
+    riskBand: text.includes("fee") ? "HIGH" : "MODERATE",
     riskScore: text.includes("fee") ? 75 : 40,
     recommendedAction: "Do not pay.",
     evidence: [{ ruleId: "fee", title: "Interview fee asked", snippet: "fee", severity: "high" }],
@@ -38,16 +36,17 @@ vi.mock("@/lib/store", async () => {
   };
 });
 
+import { sendMessage } from "@/lib/telegram/client";
 import { handleTelegramMessage } from "@/lib/telegram/handlers";
 import { resetTelegramSessionsForTests } from "@/lib/telegram/session";
 
 function lastReply(): string {
-  const calls = sendMessage.mock.calls;
+  const calls = vi.mocked(sendMessage).mock.calls;
   return String(calls[calls.length - 1]?.[1] ?? "");
 }
 
 function replies(): string[] {
-  return sendMessage.mock.calls.map((c) => String(c[1]));
+  return vi.mocked(sendMessage).mock.calls.map((c) => String(c[1] ?? ""));
 }
 
 describe("telegram command e2e (handler flow)", () => {
@@ -55,7 +54,7 @@ describe("telegram command e2e (handler flow)", () => {
     process.env.NEXT_PUBLIC_APP_URL = "https://kazi-check.rumptycloud.app";
     process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME = "kazicheck_Bot";
     resetTelegramSessionsForTests();
-    sendMessage.mockClear();
+    vi.mocked(sendMessage).mockClear();
   });
 
   afterEach(() => {

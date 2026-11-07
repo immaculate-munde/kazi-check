@@ -68,17 +68,18 @@ export async function prepareApplicationPack(opts: {
       },
     });
 
+    const pdfBytes = new Uint8Array(pdf);
     const cv = await prisma.tailoredCv.upsert({
       where: { fitAssessmentId: assessment.id },
       create: {
         fitAssessmentId: assessment.id,
         fileName,
-        pdf,
+        pdf: pdfBytes,
         templateVersion: "ats-v1",
       },
       update: {
         fileName,
-        pdf,
+        pdf: pdfBytes,
         templateVersion: "ats-v1",
       },
     });
