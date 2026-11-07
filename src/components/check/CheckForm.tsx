@@ -4,6 +4,12 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
+import {
+  DEMO_FRAUD_APPLICANT,
+  DEMO_FRAUD_JOB,
+  DEMO_LEGIT_APPLICANT,
+  DEMO_LEGIT_JOB,
+} from "@/lib/demo-cases";
 import type { CheckDirection } from "@/lib/types";
 
 export function CheckForm({ direction }: { direction: CheckDirection }) {
@@ -13,6 +19,18 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
   const [phone, setPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [demoLoaded, setDemoLoaded] = useState<string | null>(null);
+
+  const fraudCase = direction === "applicant" ? DEMO_FRAUD_APPLICANT : DEMO_FRAUD_JOB;
+  const legitCase = direction === "applicant" ? DEMO_LEGIT_APPLICANT : DEMO_LEGIT_JOB;
+
+  function loadDemo(kind: "fraud" | "legit") {
+    const sample = kind === "fraud" ? fraudCase : legitCase;
+    setText(sample.text);
+    setUrl(sample.url);
+    setError(null);
+    setDemoLoaded(sample.id);
+  }
 
   async function onFile(file: File | null) {
     if (!file) return;
@@ -51,6 +69,37 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
   return (
     <BrutalCard tone="muted">
       <form className="space-y-6" onSubmit={onSubmit}>
+        <div className="rounded-2xl border-2 border-dashed border-kc-ink/40 bg-kc-white/60 p-4">
+          <p className="text-sm font-medium text-kc-ink">Demo presentation</p>
+          <p className="mt-1 text-xs text-kc-ink/70">
+            Prefill a sample case, then hit Run check. Edit the text anytime.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => loadDemo("fraud")}
+              className={
+                demoLoaded === fraudCase.id
+                  ? "!bg-red-100 dark:!bg-red-950/40"
+                  : undefined
+              }
+            >
+              {fraudCase.label}
+            </Button>
+            <Button
+              type="button"
+              variant="lime"
+              onClick={() => loadDemo("legit")}
+              className={
+                demoLoaded === legitCase.id ? "ring-2 ring-kc-ink" : undefined
+              }
+            >
+              {legitCase.label}
+            </Button>
+          </div>
+        </div>
+
         <div>
           <label htmlFor="ad-text" className="mb-2 block text-sm font-medium">
             {direction === "applicant"
@@ -61,7 +110,10 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
             id="ad-text"
             rows={10}
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              setDemoLoaded(null);
+            }}
             placeholder={
               direction === "applicant"
                 ? "Paste CV summary, email, or LinkedIn outreach…"
@@ -79,7 +131,10 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
             id="url"
             type="url"
             value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              setDemoLoaded(null);
+            }}
             placeholder="https://…"
             className="w-full rounded-2xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-base text-kc-ink outline-none focus:ring-2 focus:ring-kc-lime"
           />
