@@ -46,8 +46,6 @@ jobs:
             echo "Unable to determine package manager"
             exit 1
           fi
-          mkdir -p out/
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -75,10 +73,10 @@ jobs:
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./out
+    #   - name: Upload artifact
+    #     uses: actions/upload-pages-artifact@v3
+    #     with:
+    #       path: ./out
 
 #   deploy:
 #     environment:
