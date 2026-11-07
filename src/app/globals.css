@@ -3,15 +3,27 @@
 :root {
   --kc-lime: #b9ff66;
   --kc-ink: #191a23;
+  --kc-on-ink: #ffffff;
   --kc-muted: #f3f3f3;
   --kc-white: #ffffff;
   --kc-gray: #898989;
-  --kc-border: #191a23;
   --kc-radius: 2.75rem;
   --kc-radius-sm: 0.875rem;
   --kc-shadow: 0 5px 0 0 #191a23;
-  --background: var(--kc-white);
-  --foreground: var(--kc-ink);
+  --background: #ffffff;
+  --foreground: #191a23;
+}
+
+.dark {
+  --kc-lime: #b9ff66;
+  --kc-ink: #e8e8e8;
+  --kc-on-ink: #12131a;
+  --kc-muted: #2c2d38;
+  --kc-white: #1c1d27;
+  --kc-gray: #a0a0a8;
+  --kc-shadow: 0 5px 0 0 #e8e8e8;
+  --background: #12131a;
+  --foreground: #e8e8e8;
 }
 
 @theme inline {
@@ -19,6 +31,7 @@
   --color-foreground: var(--foreground);
   --color-kc-lime: var(--kc-lime);
   --color-kc-ink: var(--kc-ink);
+  --color-kc-on-ink: var(--kc-on-ink);
   --color-kc-muted: var(--kc-muted);
   --color-kc-white: var(--kc-white);
   --color-kc-gray: var(--kc-gray);
@@ -32,9 +45,10 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 ::selection {
   background: var(--kc-lime);
-  color: var(--kc-ink);
+  color: #191a23;
 }

@@ -12,7 +12,7 @@ export function Hero() {
         </h1>
         <p className="mt-6 max-w-md text-lg leading-7 text-kc-ink/80">
           Paste a job offer or an applicant message. Get an evidence-backed
-          verdict — then SMS it or flag the recruiter for everyone else.
+          verdict, then SMS it or flag the recruiter for everyone else.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Button href="/#modes" variant="solid">
@@ -27,8 +27,8 @@ export function Hero() {
       <div className="relative mx-auto aspect-square w-full max-w-md">
         <div className="absolute inset-8 rounded-full border-2 border-kc-ink bg-kc-lime/40" />
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative h-56 w-56 rounded-[2rem] border-2 border-kc-ink bg-white shadow-brutal md:h-64 md:w-64">
-            <div className="absolute -right-4 -top-4 rounded-full border-2 border-kc-ink bg-kc-lime px-3 py-1 text-xs font-medium">
+          <div className="relative h-56 w-56 rounded-[2rem] border-2 border-kc-ink bg-kc-white text-kc-ink shadow-brutal md:h-64 md:w-64">
+            <div className="absolute -right-4 -top-4 rounded-full border-2 border-kc-ink bg-kc-lime px-3 py-1 text-xs font-medium text-[#191a23]">
               Evidence
             </div>
             <div className="flex h-full flex-col justify-between p-6">

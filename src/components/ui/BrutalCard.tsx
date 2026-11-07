@@ -6,7 +6,7 @@ const toneClass: Record<Tone, string> = {
   white: "bg-kc-white text-kc-ink",
   muted: "bg-kc-muted text-kc-ink",
   lime: "bg-kc-lime text-kc-ink",
-  ink: "bg-kc-ink text-white",
+  ink: "bg-kc-ink text-kc-on-ink",
 };
 
 export function BrutalCard({

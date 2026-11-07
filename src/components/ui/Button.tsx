@@ -5,10 +5,10 @@ type Variant = "solid" | "outline" | "lime";
 
 const variantClass: Record<Variant, string> = {
   solid:
-    "bg-kc-ink text-white hover:bg-kc-ink/90 border-2 border-kc-ink",
+    "bg-kc-ink text-kc-on-ink hover:opacity-90 border-2 border-kc-ink",
   outline:
     "bg-transparent text-kc-ink border-2 border-kc-ink hover:bg-kc-muted",
-  lime: "bg-kc-lime text-kc-ink border-2 border-kc-ink hover:brightness-95",
+  lime: "bg-kc-lime text-[#191a23] border-2 border-kc-ink hover:brightness-95",
 };
 
 type CommonProps = {
