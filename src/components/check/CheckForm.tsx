@@ -4,6 +4,12 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
+import {
+  DEMO_FRAUD_APPLICANT,
+  DEMO_FRAUD_JOB,
+  DEMO_LEGIT_APPLICANT,
+  DEMO_LEGIT_JOB,
+} from "@/lib/demo-cases";
 import type { CheckDirection } from "@/lib/types";
 
 const channels = [
@@ -40,17 +46,30 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [demoLoaded, setDemoLoaded] = useState<string | null>(null);
   const urlInput = useRef<HTMLInputElement>(null);
+
+  const fraudCase = direction === "applicant" ? DEMO_FRAUD_APPLICANT : DEMO_FRAUD_JOB;
+  const legitCase = direction === "applicant" ? DEMO_LEGIT_APPLICANT : DEMO_LEGIT_JOB;
 
   function selectChannel(next: CheckChannel) {
     setChannel(next);
     if (next === "link") window.setTimeout(() => urlInput.current?.focus(), 0);
   }
 
+  function loadDemo(kind: "fraud" | "legit") {
+    const sample = kind === "fraud" ? fraudCase : legitCase;
+    setText(sample.text);
+    setUrl(sample.url);
+    setError(null);
+    setDemoLoaded(sample.id);
+  }
+
   async function onFile(file: File | null) {
     if (!file) return;
     const raw = await file.text();
     setText((prev) => (prev ? `${prev}\n\n${raw}` : raw));
+    setDemoLoaded(null);
   }
 
   async function onSubmit(e: FormEvent) {
@@ -116,7 +135,10 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
             </label>
             <button
               type="button"
-              onClick={() => setText(samplePaste[channel])}
+              onClick={() => {
+                setText(samplePaste[channel]);
+                setDemoLoaded(null);
+              }}
               className="min-h-11 rounded-lg px-3 text-sm font-medium text-kc-ink underline decoration-kc-ink/30 underline-offset-4 hover:decoration-kc-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kc-ink"
             >
               Use sample paste
@@ -132,7 +154,10 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
             id="ad-text"
             rows={8}
             value={text}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              setDemoLoaded(null);
+            }}
             aria-describedby="ad-text-help"
             placeholder="Paste the complete message here…"
             className="kc-field resize-y leading-7"
@@ -155,7 +180,10 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
             id="url"
             type="url"
             value={url}
-            onChange={(e) => setUrl(e.target.value)}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              setDemoLoaded(null);
+            }}
             placeholder="https://…"
             className="kc-field"
           />
@@ -214,6 +242,37 @@ export function CheckForm({ direction }: { direction: CheckDirection }) {
           >
             Switch to {direction === "applicant" ? "job offer" : "applicant"}
           </Button>
+        </div>
+
+        <div className="rounded-2xl border border-dashed border-kc-ink/25 bg-kc-white/60 p-4">
+          <p className="text-sm font-medium text-kc-ink">Demo presentation</p>
+          <p className="mt-1 text-xs text-kc-ink/70">
+            Prefill a sample case, then hit Run check. Edit the text anytime.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => loadDemo("fraud")}
+              className={
+                demoLoaded === fraudCase.id
+                  ? "!bg-red-100 dark:!bg-red-950/40"
+                  : undefined
+              }
+            >
+              {fraudCase.label}
+            </Button>
+            <Button
+              type="button"
+              variant="lime"
+              onClick={() => loadDemo("legit")}
+              className={
+                demoLoaded === legitCase.id ? "ring-2 ring-kc-ink" : undefined
+              }
+            >
+              {legitCase.label}
+            </Button>
+          </div>
         </div>
       </form>
     </BrutalCard>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Outfit } from "next/font/google";
 import { AppChrome } from "@/components/app/AppChrome";
 import { RoleProvider } from "@/components/role/RoleProvider";
@@ -18,7 +19,11 @@ export const metadata: Metadata = {
     "Two-way recruitment trust for Kenya. Check job ads, verify applicants, and flag scam recruiters for the community.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+interface RootLayoutProps {
+  children: ReactNode;
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" data-scroll-behavior="smooth" className={`${outfit.variable} h-full antialiased`} suppressHydrationWarning>
       <head>

@@ -416,6 +416,33 @@ export function EvidenceView({ checkId }: { checkId: string }) {
           />
         </section>
 
+        {check.gaps?.length ? (
+          <section className="mt-8" aria-labelledby="gaps-title">
+            <h2 id="gaps-title" className="text-xl font-semibold">Gaps (could not check)</h2>
+            <ul className="mt-3 space-y-2">
+              {check.gaps.map((g) => (
+                <li
+                  key={g}
+                  className="rounded-xl border border-kc-ink/10 bg-kc-muted px-3 py-2 text-sm"
+                >
+                  {g}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {check.confirmYourself?.length ? (
+          <section className="mt-8" aria-labelledby="confirm-title">
+            <h2 id="confirm-title" className="text-xl font-semibold">What to confirm yourself</h2>
+            <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-kc-ink/80">
+              {check.confirmYourself.map((c) => (
+                <li key={c}>{c}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         {topReasons.length > 0 ? (
           <section className="mt-8 rounded-2xl border border-kc-ink/10 bg-kc-muted/60 p-4 sm:p-5" aria-labelledby="community-title">
             <h2 id="community-title" className="font-semibold">Community context</h2>

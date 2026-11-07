@@ -4,8 +4,8 @@
 
 <p align="center">
   <strong>Two-way recruitment trust for Kenya.</strong><br />
-  Paste a job ad or applicant message. Get an evidence-backed verdict.<br />
-  Apply only on the official portal. Never pay. Never WhatsApp-apply.
+  Paste a job, ad or applicant message. Get an evidence-backed verdict.<br />
+  Apply only on the official portal. Never pay. Never WhatsApp-appl.
 </p>
 
 <p align="center">
@@ -21,7 +21,7 @@
   <a href="#security-measures">Security</a> ·
   <a href="#verdicts">Verdicts</a> ·
   <a href="#api">API</a> ·
-  <a href="#whats-next">What's next</a>
+  <a href="#whats-next">What's next?</a>
 </p>
 
 ---

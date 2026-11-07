@@ -4,6 +4,7 @@ import type {
   ExtractedApplicant,
   ExtractedOffer,
 } from "@/lib/types";
+import { extractWithLlm, isLlmConfigured } from "@/lib/extract/llm";
 import { detectSubjectsFromText, isFreeEmail } from "@/lib/subjects/normalize";
 
 const KNOWN_ORGS =
@@ -16,14 +17,14 @@ const UPFRONT_FEE =
   /(?:interview|medical|visa|training|background|application|registration|clearance|processing)\s+(?:fee|fees|payment)|(?:pay|send|deposit)\s+(?:kes|ksh|kshs)?\s*[\d,]+|(?:kes|ksh|kshs)\s*[\d,]+\s+(?:registration|clearance|medical|interview|fee|deposit)/i;
 
 /**
- * Scaffold extractor: heuristic parse now.
- * LLM may fill this schema when wired; it must never pick a verdict.
+ * Prefer LLM schema fill when configured; heuristics otherwise.
+ * LLM must never pick a verdict — rules engine owns that.
  */
 export async function extractFromText(
   direction: CheckDirection,
   text: string,
 ): Promise<Extracted> {
-  if (process.env.LLM_API_KEY) {
+  if (isLlmConfigured()) {
     try {
       return await extractWithLlm(direction, text);
     } catch {
@@ -33,14 +34,7 @@ export async function extractFromText(
   return heuristicExtract(direction, text);
 }
 
-async function extractWithLlm(
-  direction: CheckDirection,
-  text: string,
-): Promise<Extracted> {
-  void direction;
-  void text;
-  throw new Error("LLM extract not implemented yet");
-}
+export { extractWithLlm, isLlmConfigured };
 
 export function heuristicExtract(direction: CheckDirection, text: string): Extracted {
   const subjects = detectSubjectsFromText(text);
@@ -49,7 +43,7 @@ export function heuristicExtract(direction: CheckDirection, text: string): Extra
   const domains = subjects.filter((s) => s.kind === "domain").map((s) => s.key);
   const urls = (text.match(/https?:\/\/\S+/gi) ?? []).map((u) => u.replace(/[),.;]+$/, ""));
 
-  const feeHits =
+  const feeHits: string[] =
     text.match(
       /(?:interview|medical|visa|training|background|application|registration|clearance|processing)\s+(?:fee|fees|payment|pay)/gi,
     ) ?? [];

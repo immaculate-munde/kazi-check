@@ -8,6 +8,7 @@ import { BrutalCard } from "@/components/ui/BrutalCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { trackerPrefillHref } from "@/lib/tracker/query";
 import type { OfferAnalysisRecord } from "@/lib/types";
+import { displayVerdict } from "@/lib/verdict";
 
 export function OfferResultClient({ id }: { id: string }) {
   const [record, setRecord] = useState<OfferAnalysisRecord | null>(null);
@@ -69,7 +70,7 @@ export function OfferResultClient({ id }: { id: string }) {
       <div className="mb-5"><SectionLabel>Offer report</SectionLabel></div>
       <RiskScoreBanner riskBand={record.riskBand} riskScore={record.riskScore} direction="offer_letter" />
       <BrutalCard className="mt-6" tone="white">
-        <p className="text-sm font-medium text-kc-ink/80">{record.verdict.replaceAll("_", " ")}</p>
+        <p className="text-sm font-medium text-kc-ink/80">{displayVerdict(record.verdict)}</p>
 
         <section className="mt-6">
           <h2 className="text-lg font-semibold">Review these first</h2>

@@ -55,7 +55,7 @@ export const OFFICIAL_ORGANIZATIONS = [
       "kenya ministry of defence",
     ],
     careersUrl: "https://mod.go.ke",
-    officialUrl: "https://mod.go.ke",
+    officialUrl: "https://mod.go.ke/",
   },
 ] as const;
 
