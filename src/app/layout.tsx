@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Space_Grotesk } from "next/font/google";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -18,7 +19,11 @@ export const metadata: Metadata = {
     "Two-way recruitment trust for Kenya. Check job ads, verify applicants, and flag scam recruiters for the community.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+interface RootLayoutProps {
+  children: ReactNode;
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={`${spaceGrotesk.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
