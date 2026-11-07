@@ -1,4 +1,4 @@
-# Kazi Check — Implementation plan (summary)
+# Kazi Check - Implementation plan (summary)
 
 ## Done in scaffold
 
