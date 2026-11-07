@@ -132,6 +132,7 @@ export type CheckRecord = {
   recommendedAction: string;
   extracted: Extracted;
   evidence: EvidenceItem[];
+  findings: Finding[];
   subjects: SubjectRef[];
   gaps: string[];
   confirmYourself: string[];
