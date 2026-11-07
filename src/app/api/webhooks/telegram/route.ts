@@ -18,6 +18,7 @@ type TelegramDocument = {
 type TelegramMessage = {
   message_id: number;
   chat: { id: number };
+  from?: { id: number };
   text?: string;
   caption?: string;
   document?: TelegramDocument;
@@ -53,6 +54,7 @@ function toUserMessage(message: TelegramMessage): TelegramUserMessage {
 
   return {
     chatId: message.chat.id,
+    telegramUserId: message.from?.id,
     text: message.text,
     caption: message.caption,
     document: message.document

@@ -1,14 +1,23 @@
+import type { CheckDirection } from "@/lib/types";
+
 export type TelegramSessionStep =
   | "idle"
   | "awaiting_offer"
-  | "awaiting_applicant";
+  | "awaiting_applicant"
+  | "awaiting_phone"
+  | "awaiting_otp"
+  | "awaiting_cv_text"
+  | "awaiting_name";
 
 export type TelegramSession = {
   step: TelegramSessionStep;
+  lastCheckId?: string;
+  pendingPhone?: string;
+  pendingUserId?: string;
   updatedAt: number;
 };
 
-const TTL_MS = 15 * 60 * 1000;
+const TTL_MS = 30 * 60 * 1000;
 
 const globalSessions = globalThis as unknown as {
   __kcTelegramSessions?: Map<number, TelegramSession>;
@@ -34,14 +43,35 @@ export function getSession(chatId: number): TelegramSession {
 export function setSession(
   chatId: number,
   step: TelegramSessionStep,
+  extra: Partial<
+    Pick<TelegramSession, "lastCheckId" | "pendingPhone" | "pendingUserId">
+  > = {},
 ): TelegramSession {
-  const next: TelegramSession = { step, updatedAt: Date.now() };
+  const prior = getSession(chatId);
+  const next: TelegramSession = {
+    step,
+    lastCheckId:
+      extra.lastCheckId !== undefined ? extra.lastCheckId : prior.lastCheckId,
+    pendingPhone:
+      extra.pendingPhone !== undefined ? extra.pendingPhone : prior.pendingPhone,
+    pendingUserId:
+      extra.pendingUserId !== undefined
+        ? extra.pendingUserId
+        : prior.pendingUserId,
+    updatedAt: Date.now(),
+  };
   store().set(chatId, next);
   return next;
 }
 
 export function clearSession(chatId: number) {
   store().delete(chatId);
+}
+
+export function directionFromSession(chatId: number): CheckDirection {
+  const step = getSession(chatId).step;
+  if (step === "awaiting_applicant") return "applicant";
+  return "job_offer";
 }
 
 export function resetTelegramSessionsForTests() {

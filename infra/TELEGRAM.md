@@ -42,7 +42,10 @@ curl "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/getWebhookInfo"
 ## Try it
 
 - `/start` — menu  
-- Paste a scam sample (interview fee + lookalike domain)  
-- Upload a screenshot or `.txt`  
+- `/profile` — phone OTP + CV (once)  
+- Paste a job ad or upload a screenshot / `.txt`  
+- If not a scam and profile is set: match score + tailored CV PDF  
+- `/cv` — re-send last tailored CV  
+- `/apply` — prepare-only next steps (never auto-submit)
 
-You should get a verdict and an `https://…/checks/<id>` link on its own line.
+You should get a verdict and an `https://…/checks/<id>` link. Web twin: `/profile` then **Prepare for this role** on the report page.

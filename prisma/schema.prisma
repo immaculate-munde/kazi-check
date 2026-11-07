@@ -153,6 +153,77 @@ model OrganisationDomain {
   @@index([organisationId])
 }
 
+/** Job seeker identity — phone is the durable key (web + Telegram + SMS). */
+model User {
+  id               String          @id @default(cuid())
+  phone            String          @unique
+  phoneVerifiedAt  DateTime?
+  telegramChatId   String?         @unique
+  telegramUserId   String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  profile          Profile?
+  fitAssessments   FitAssessment[]
+}
+
+model Profile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName     String   @default("")
+  headline     String   @default("")
+  location     String   @default("")
+  summary      String   @default("")
+  skills       Json     @default("[]")
+  experience   Json     @default("[]")
+  education    Json     @default("[]")
+  languages    Json     @default("[]")
+  links        Json     @default("[]")
+  source       String   @default("web_form")
+  rawCvText    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model PhoneOtp {
+  id        String   @id @default(cuid())
+  phone     String
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+}
+
+model FitAssessment {
+  id           String      @id @default(cuid())
+  checkId      String
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score        Int
+  label        String
+  matchBullets Json        @default("[]")
+  gapBullets   Json        @default("[]")
+  roleTitle    String      @default("")
+  createdAt    DateTime    @default(now())
+  tailoredCv   TailoredCv?
+
+  @@unique([checkId, userId])
+  @@index([userId])
+  @@index([checkId])
+}
+
+model TailoredCv {
+  id               String        @id @default(cuid())
+  fitAssessmentId  String        @unique
+  fitAssessment    FitAssessment @relation(fields: [fitAssessmentId], references: [id], onDelete: Cascade)
+  fileName         String
+  templateVersion  String        @default("ats-v1")
+  pdf              Bytes
+  createdAt        DateTime      @default(now())
+}
+
 /** Job Bot queue. Masked text only — never raw unmasked ad bytes. */
 model BotQueueItem {
   id             String    @id

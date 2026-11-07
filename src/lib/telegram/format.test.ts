@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { formatBatchReply, formatCheckReply, helpText } from "@/lib/telegram/format";
+import {
+  applyHelpText,
+  formatBatchReply,
+  formatCheckReply,
+  helpText,
+  wantsApplyHelp,
+} from "@/lib/telegram/format";
 import type { BotQueueItem, CheckRecord } from "@/lib/types";
 
 const ORIGINAL_URL = process.env.NEXT_PUBLIC_APP_URL;
@@ -13,7 +19,7 @@ afterEach(() => {
 });
 
 describe("telegram format", () => {
-  it("puts an absolute https check URL on its own line", () => {
+  it("uses plain language and a clickable https report URL", () => {
     process.env.NEXT_PUBLIC_APP_URL = "https://kazi-check.rumptycloud.app";
     const check = {
       id: "cm_test_1",
@@ -24,19 +30,17 @@ describe("telegram format", () => {
       recommendedAction: "Do not pay.",
       evidence: [
         { ruleId: "fee", title: "Ask for interview fee", snippet: "fee", severity: "high" },
-        { ruleId: "domain", title: "Lookalike domain", snippet: "fake", severity: "high" },
       ],
     } as CheckRecord;
 
     const body = formatCheckReply(check);
-    expect(body).toContain("Kazi Check: SCAM · HIGH · 70/100");
-    expect(body).toContain("• Ask for interview fee");
-    expect(body).toMatch(
-      /Open report:\nhttps:\/\/kazi-check\.rumptycloud\.app\/checks\/cm_test_1$/,
-    );
+    expect(body).toContain("Looks like a SCAM");
+    expect(body).toContain("We never auto-apply");
+    expect(body).toContain("Do not apply to this ad");
+    expect(body).toContain("https://kazi-check.rumptycloud.app/checks/cm_test_1");
   });
 
-  it("summarizes a batch with per-item links when checkId is present", () => {
+  it("summarizes a batch in simple words", () => {
     process.env.NEXT_PUBLIC_APP_URL = "https://kazi-check.rumptycloud.app";
     const items = [
       {
@@ -55,15 +59,28 @@ describe("telegram format", () => {
     ] as BotQueueItem[];
 
     const body = formatBatchReply(items);
-    expect(body).toContain("1 ad(s) checked: 1 blocked");
+    expect(body).toContain("blocked (do not apply)");
+    expect(body).toContain("We prepare CVs");
     expect(body).toContain("https://kazi-check.rumptycloud.app/checks/chk_a");
-    expect(body).toContain("https://kazi-check.rumptycloud.app/bot");
+  });
+
+  it("answers apply help without a prior check", () => {
+    const body = applyHelpText(null);
+    expect(body).toContain("Can Kazi Check apply for you?");
+    expect(body).toContain("No.");
+    expect(body).toContain("First send a job ad");
+  });
+
+  it("detects natural-language apply questions", () => {
+    expect(wantsApplyHelp("can you apply for me?")).toBe(true);
+    expect(wantsApplyHelp("apply for me please")).toBe(true);
+    expect(wantsApplyHelp("KenGen is hiring")).toBe(false);
   });
 
   it("mentions bot username in help when configured", () => {
     process.env.NEXT_PUBLIC_APP_URL = "https://kazi-check.rumptycloud.app";
-    process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME = "KaziCheckBot";
-    expect(helpText()).toContain("@KaziCheckBot");
-    expect(helpText()).toContain("/check");
+    process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME = "kazicheck_Bot";
+    expect(helpText()).toContain("@kazicheck_Bot");
+    expect(helpText()).toContain("What I cannot do");
   });
 });

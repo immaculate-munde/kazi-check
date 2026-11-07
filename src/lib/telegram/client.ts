@@ -21,8 +21,7 @@ type TelegramApiResult<T> = {
 
 async function telegramApi<T>(
   method: string,
-  body?: Record<string, unknown>,
-  asForm = false,
+  body?: Record<string, unknown> | FormData,
 ): Promise<T> {
   const token = getTelegramToken();
   if (!token) {
@@ -30,22 +29,14 @@ async function telegramApi<T>(
   }
 
   const url = `https://api.telegram.org/bot${token}/${method}`;
-  let response: Response;
-
-  if (asForm && body) {
-    const form = new FormData();
-    for (const [key, value] of Object.entries(body)) {
-      if (value === undefined || value === null) continue;
-      form.append(key, String(value));
-    }
-    response = await fetch(url, { method: "POST", body: form });
-  } else {
-    response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-  }
+  const response =
+    body instanceof FormData
+      ? await fetch(url, { method: "POST", body })
+      : await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: body ? JSON.stringify(body) : undefined,
+        });
 
   const data = (await response.json()) as TelegramApiResult<T>;
   if (!data.ok || data.result === undefined) {
@@ -78,6 +69,26 @@ type TelegramFile = {
   file_size?: number;
   file_path?: string;
 };
+
+export async function sendDocument(
+  chatId: number | string,
+  file: Buffer,
+  fileName: string,
+  caption?: string,
+): Promise<unknown> {
+  const form = new FormData();
+  form.append("chat_id", String(chatId));
+  form.append(
+    "document",
+    new Blob([new Uint8Array(file)], { type: "application/pdf" }),
+    fileName,
+  );
+  if (caption) {
+    const clipped = caption.length > 900 ? `${caption.slice(0, 890)}…` : caption;
+    form.append("caption", clipped);
+  }
+  return telegramApi("sendDocument", form);
+}
 
 export async function getFileBuffer(fileId: string): Promise<{
   buffer: Buffer;

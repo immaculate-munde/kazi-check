@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { CheckFindings } from "@/components/check/CheckFindings";
 import type { FindingStatus } from "@/components/check/FindingRow";
 import { OfficialOrgSidebar } from "@/components/check/OfficialOrgSidebar";
+import { PrepareForRole } from "@/components/check/PrepareForRole";
 import { RiskScoreBanner, riskSummary } from "@/components/check/RiskScoreBanner";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
@@ -394,6 +395,8 @@ export function EvidenceView({ checkId }: { checkId: string }) {
             </div>
           </div>
         </section>
+
+        <PrepareForRole check={check} />
       </div>
 
       <aside className="min-w-0 space-y-4 lg:sticky lg:top-6 lg:row-span-2">

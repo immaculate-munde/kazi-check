@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/telegram/client", () => ({
   sendMessage: vi.fn(async () => ({})),
+  sendDocument: vi.fn(async () => ({})),
   getFileBuffer: vi.fn(),
 }));
 
@@ -16,6 +17,7 @@ vi.mock("@/lib/pipeline/run-check", () => ({
     evidence: [
       { ruleId: "fee", title: "Interview fee", snippet: "pay", severity: "high" },
     ],
+    officialListing: null,
   })),
 }));
 
@@ -51,13 +53,13 @@ describe("handleTelegramMessage", () => {
 
     const calls = vi.mocked(sendMessage).mock.calls;
     const last = calls[calls.length - 1]?.[1] as string;
-    expect(last).toContain("SCAM");
+    expect(last).toContain("Looks like a SCAM");
     expect(last).toContain("https://kazi-check.rumptycloud.app/checks/cm_mock");
   });
 
-  it("answers /start with help", async () => {
+  it("answers /start with simple help", async () => {
     process.env.NEXT_PUBLIC_APP_URL = "https://kazi-check.rumptycloud.app";
     await handleTelegramMessage({ chatId: 7, text: "/start" });
-    expect(vi.mocked(sendMessage).mock.calls[0]?.[1]).toContain("/check");
+    expect(vi.mocked(sendMessage).mock.calls[0]?.[1]).toContain("Hi — I'm Kazi Check");
   });
 });
