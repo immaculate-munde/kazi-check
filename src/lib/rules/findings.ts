@@ -298,6 +298,60 @@ function applicantFindings(
   ];
 }
 
+export function findingsFromIntel(extra: EvidenceItem[]): Finding[] {
+  const age = hit(extra, "domain_age");
+  const mx = hit(extra, "dns_mx");
+  const rows: Finding[] = [];
+  if (age) {
+    const outcome: FindingOutcome = age.outcome ?? (age.points ? "flagged" : "unknown");
+    rows.push(
+      row(
+        "domain_age",
+        age.title,
+        outcome,
+        age.points ?? 10,
+        outcome === "flagged"
+          ? `At least one domain was registered in the last ${180} days. New domains are common in scams, but this alone is not proof of fraud.`
+          : outcome === "passed"
+            ? "Domains were registered more than 180 days ago, or they are official / well-known email providers. Domain age alone does not indicate legitimacy."
+            : "Registration data was unavailable, redacted, or no domain was found to check. Unknown is not a scam stamp.",
+        age.snippet,
+        "RDAP",
+      ),
+    );
+  }
+  if (mx) {
+    const outcome: FindingOutcome = mx.outcome ?? "unknown";
+    rows.push(
+      row(
+        "dns_mx",
+        mx.title,
+        outcome,
+        0,
+        outcome === "flagged"
+          ? "The email domain has no mail (MX) records, so it cannot normally receive email. This is recorded as an observation only."
+          : outcome === "passed"
+            ? "The email domain has mail (MX) records."
+            : "MX lookup failed or was not run. This observation does not change the verdict.",
+        mx.snippet,
+        "DNS",
+      ),
+    );
+  }
+  return rows;
+}
+
+export function mergeIntelFindings(
+  findings: Finding[],
+  extra: EvidenceItem[],
+): Finding[] {
+  const next = findings.filter(
+    (f) => f.checkKey !== "domain_age" && f.checkKey !== "dns_mx",
+  );
+  next.push(...findingsFromIntel(extra));
+  return next;
+}
+
 export function mergeListingFinding(
   findings: Finding[],
   extra: EvidenceItem[],

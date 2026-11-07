@@ -33,6 +33,8 @@ export type EvidenceItem = {
   sourceType?: "content" | "registry" | "whitelist" | "community" | "heuristic";
   retrievedAt?: string;
   points?: number;
+  /** Optional; used for extra evidence (RDAP/MX) that is not a stacked verdict. */
+  outcome?: FindingOutcome;
 };
 
 /** Every check reports one of these. Unknown is never a SCAM stamp. */
@@ -281,6 +283,9 @@ export type BotQueueItem = {
   maskedText: string;
   checkId?: string;
   verdict?: Verdict;
+  riskScore?: number;
+  flaggedCount?: number;
+  unknownCount?: number;
   gate?: GateResult;
   reason?: string;
   gaps: string[];
