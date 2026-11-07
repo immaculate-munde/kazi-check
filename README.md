@@ -50,4 +50,4 @@ npx prisma migrate dev
 
 ## Team work
 
-Scaffold is complete. GitHub issues should track **post-scaffold** implementation (real LLM, Prisma persistence, ThriveWave HTTP, WHOIS, datasets, RumptyCloud go-live) — not re-scaffolding.
+Scaffold is complete. GitHub issues should track **post-scaffold** implementation (real LLM, Prisma persistence, ThriveWave HTTP, WHOIS, datasets, RumptyCloud go-live), not re-scaffolding.
