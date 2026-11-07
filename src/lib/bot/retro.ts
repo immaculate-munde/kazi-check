@@ -1,3 +1,4 @@
+import { absoluteAppUrl } from "@/lib/app-url";
 import { sendSms } from "@/lib/thrivewave";
 import { getSubject, listBotQueue, listChecks, saveBotItem, updateCheck } from "@/lib/store";
 import type { BotQueueItem, CheckRecord, SubjectKind } from "@/lib/types";
@@ -26,8 +27,13 @@ function formatRetroSms(input: {
   reason: string;
   flagCount: number;
 }): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  return `Kazi Check retro-alert: an identifier from an ad you checked was flagged (${input.flagCount} reports). ${input.reason.slice(0, 60)}. Don't pay. ${base}/checks/${input.checkId}`;
+  const reportUrl = absoluteAppUrl(`/checks/${input.checkId}`);
+  return [
+    `Kazi Check retro-alert: an identifier from an ad you checked was flagged (${input.flagCount} reports).`,
+    `${input.reason.slice(0, 60)}. Don't pay.`,
+    "Open full report:",
+    reportUrl,
+  ].join("\n");
 }
 
 /**

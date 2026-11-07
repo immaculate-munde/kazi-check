@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { absoluteAppUrl } from "@/lib/app-url";
 import { runCheckPipeline } from "@/lib/pipeline/run-check";
 import { handleUssd } from "@/lib/thrivewave";
 import type { CheckDirection } from "@/lib/types";
@@ -35,10 +36,11 @@ export async function POST(request: Request) {
   if (direction && input.length > 8 && !menu.body.startsWith("CON")) {
     try {
       const check = await runCheckPipeline({ direction, text: input });
+      const reportUrl = absoluteAppUrl(`/checks/${check.id}`);
       return NextResponse.json({
         body: `END ${check.verdict}. Evidence: ${
           check.evidence[0]?.title ?? "none"
-        }. Full: /checks/${check.id}`,
+        }. Full report: ${reportUrl}`,
         checkId: check.id,
         verdict: check.verdict,
       });

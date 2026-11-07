@@ -4,6 +4,8 @@
  * API Docs: https://sms.thrivevas.com
  */
 
+import { absoluteAppUrl } from "@/lib/app-url";
+
 export type SmsPayload = {
   phone: string;
   message: string;
@@ -230,11 +232,15 @@ export function formatVerdictSms(input: {
   topEvidence: string[];
   appUrl?: string;
 }): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  // Keep the https URL alone on the last line so handsets auto-link it.
+  const reportUrl =
+    input.appUrl?.replace(/\/+$/, "") ||
+    absoluteAppUrl(`/checks/${input.checkId}`);
   const lines = [
     `Kazi Check: ${input.verdict}. Don't pay. Verify on the official site.`,
     ...input.topEvidence.slice(0, 2).map((e) => `• ${e}`),
-    `Report: ${base}/checks/${input.checkId}`,
+    "Open full report:",
+    reportUrl,
   ];
   return lines.join("\n");
 }
