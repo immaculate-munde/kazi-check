@@ -1,15 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { CheckFindings } from "@/components/check/CheckFindings";
+import { OfficialOrgSidebar } from "@/components/check/OfficialOrgSidebar";
+import { RiskScoreBanner } from "@/components/check/RiskScoreBanner";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
-import type { BotQueueItem } from "@/lib/types";
-import { displayVerdict } from "@/lib/verdict";
+import { queueLineForBot } from "@/lib/check/queue-line";
+import type { BotQueueItem, CheckRecord } from "@/lib/types";
 
 type UploadResponse = {
   items: BotQueueItem[];
-  table: { ad: string; verdict: string; gate: string; reason: string }[];
+  table: { ad: string; line: string; verdict: string; gate: string; reason: string }[];
   errors?: { filename: string; reason: string }[];
   truncated?: number;
 };
@@ -24,6 +27,7 @@ export default function BotPage() {
   const [phone, setPhone] = useState("");
   const [digest, setDigest] = useState<string | null>(null);
   const [selected, setSelected] = useState<BotQueueItem | null>(null);
+  const [selectedCheck, setSelectedCheck] = useState<CheckRecord | null>(null);
   const [ticks, setTicks] = useState<Record<string, boolean>>({});
   const [cvText, setCvText] = useState("");
   const [matchScore, setMatchScore] = useState<number | null>(null);
@@ -39,6 +43,25 @@ export default function BotPage() {
   useEffect(() => {
     refresh().catch(() => undefined);
   }, [refresh]);
+
+  useEffect(() => {
+    if (!selected?.checkId) {
+      setSelectedCheck(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/checks/${selected.checkId}`)
+      .then(async (res) => {
+        const data = await res.json();
+        if (!cancelled && res.ok) setSelectedCheck(data as CheckRecord);
+      })
+      .catch(() => {
+        if (!cancelled) setSelectedCheck(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selected?.checkId]);
 
   async function onUpload() {
     if (!text.trim() && (!files || files.length === 0)) return;
@@ -206,15 +229,13 @@ export default function BotPage() {
             <thead className="bg-kc-muted">
               <tr>
                 <th className="px-4 py-3">Ad</th>
-                <th className="px-4 py-3">Verdict</th>
-                <th className="px-4 py-3">Gate</th>
-                <th className="px-4 py-3">Reason</th>
+                <th className="px-4 py-3">Result</th>
               </tr>
             </thead>
             <tbody>
               {table.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-6 text-kc-gray" colSpan={4}>
+                  <td className="px-4 py-6 text-kc-gray" colSpan={2}>
                     No ads in this session yet.
                   </td>
                 </tr>
@@ -233,12 +254,10 @@ export default function BotPage() {
                         }
                       }}
                     >
-                      <td className="px-4 py-3">{row.ad}</td>
-                      <td className="px-4 py-3">
-                        {item?.verdict ? displayVerdict(item.verdict) : row.verdict}
+                      <td className="px-4 py-3 font-mono text-xs">{row.ad}</td>
+                      <td className="px-4 py-3 font-mono text-xs sm:text-sm">
+                        {item ? queueLineForBot(item) : row.line}
                       </td>
-                      <td className="px-4 py-3">{row.gate}</td>
-                      <td className="px-4 py-3">{row.reason}</td>
                     </tr>
                   );
                 })
@@ -249,12 +268,31 @@ export default function BotPage() {
       </section>
 
       {selected ? (
-        <BrutalCard className="mt-10" tone="white">
+        <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start">
+        <BrutalCard className="mt-0" tone="white">
           <p className="text-sm uppercase tracking-wide text-kc-gray">{selected.id}</p>
-          <h3 className="mt-2 text-3xl font-medium">
-            {selected.verdict ? displayVerdict(selected.verdict) : selected.status}
-          </h3>
-          <p className="mt-2 text-sm">Gate: {selected.gate ?? selected.status}</p>
+          {selectedCheck ? (
+            <div className="mt-4">
+              <RiskScoreBanner
+                riskBand={selectedCheck.riskBand}
+                riskScore={selectedCheck.riskScore}
+                direction={selectedCheck.direction}
+                queueLine={queueLineForBot(selected)}
+              />
+              <div className="mt-8">
+                <h2 className="text-xl font-semibold">Findings</h2>
+                <p className="mt-1 text-sm text-kc-gray">Same engine as the check result page.</p>
+                <div className="mt-4">
+                  <CheckFindings findings={selectedCheck.findings} />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <h3 className="mt-2 text-3xl font-medium">{queueLineForBot(selected)}</h3>
+              <p className="mt-2 text-sm">Gate: {selected.gate ?? selected.status}</p>
+            </>
+          )}
           {selected.gate === "BLOCKED" ? (
             <p className="mt-4 text-sm">
               Blocked. Review evidence on the check page and report. No drafting.
@@ -359,6 +397,8 @@ export default function BotPage() {
             </div>
           )}
         </BrutalCard>
+        {selectedCheck ? <OfficialOrgSidebar check={selectedCheck} /> : null}
+        </div>
       ) : null}
 
       <BrutalCard className="mt-10" tone="muted">

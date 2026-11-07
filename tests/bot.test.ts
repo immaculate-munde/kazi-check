@@ -13,7 +13,7 @@ import { buildApplyPacket } from "@/lib/bot/apply";
 import { dispatchRetroAlerts } from "@/lib/bot/retro";
 import { addFlag, getCheck } from "@/lib/store";
 import { formatBatchDigest } from "@/lib/bot/digest";
-import { processAd } from "@/lib/bot/process";
+import { processAd, queueTable } from "@/lib/bot/process";
 import { heuristicExtract } from "@/lib/extract";
 import { matchOfficialListing } from "@/lib/official";
 import { maskPii, stillContainsSensitivePii } from "@/lib/pii";
@@ -78,6 +78,11 @@ describe("raw files", () => {
     });
     expect(item.maskedText.length).toBeGreaterThan(10);
     expect(item.status === "gated" || item.status === "failed").toBe(true);
+    expect(item.verdict).toBe("SCAM");
+    expect(item.gate).toBe("BLOCKED");
+    expect(item.flaggedCount).toBeGreaterThan(0);
+    const [row] = queueTable([item]);
+    expect(row.line).toMatch(/SCAM · \d+ · \d+ flagged · \d+ unknown · BLOCKED/);
   });
 });
 

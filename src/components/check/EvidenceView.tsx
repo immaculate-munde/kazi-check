@@ -2,13 +2,15 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { CheckFindings } from "@/components/check/CheckFindings";
 import { FindingRow, type FindingStatus } from "@/components/check/FindingRow";
+import { OfficialOrgSidebar } from "@/components/check/OfficialOrgSidebar";
 import { RiskScoreBanner, riskSummary } from "@/components/check/RiskScoreBanner";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
 import { FlagCountPill } from "@/components/ui/FlagCountPill";
 import { SectionLabel } from "@/components/ui/SectionLabel";
-import { findOfficialOrganization, IMPERSONATIONS } from "@/lib/rules/whitelist";
+import { countFindings, queueLineForCheck } from "@/lib/check/queue-line";
 import { trackerPrefillHref } from "@/lib/tracker/query";
 import type { CheckRecord, EvidenceItem } from "@/lib/types";
 
@@ -51,27 +53,6 @@ function sourceLabel(item: EvidenceItem) {
     default:
       return "Kazi Check rules engine";
   }
-}
-
-function getEmployer(check: CheckRecord) {
-  const extracted = check.extracted;
-  const claimedOrg =
-    "claimedOrg" in extracted
-      ? extracted.claimedOrg
-      : "claimedEmployer" in extracted
-        ? extracted.claimedEmployer
-        : null;
-  const domain = "domain" in extracted ? extracted.domain : null;
-  const impersonation = domain
-    ? IMPERSONATIONS.find((item) =>
-        domain.toLowerCase().includes(item.fake.toLowerCase()),
-      )
-    : null;
-  return (
-    findOfficialOrganization(claimedOrg) ??
-    findOfficialOrganization(impersonation?.org) ??
-    findOfficialOrganization(domain)
-  );
 }
 
 function buildFindings(check: CheckRecord, flagCount: number): Finding[] {
@@ -221,13 +202,15 @@ export function EvidenceView({ checkId }: { checkId: string }) {
     };
   }, [checkId, retryCount]);
 
-  const findings = useMemo(
+  const fallbackFindings = useMemo(
     () => (check ? buildFindings(check, flagCount) : []),
     [check, flagCount],
   );
-  const employer = useMemo(() => (check ? getEmployer(check) : null), [check]);
-  const flaggedFindings = findings.filter((item) => item.status === "Flagged").length;
-  const unknownFindings = findings.filter((item) => item.status === "Not determined").length;
+  const engineCounts = check ? countFindings(check.findings) : { flagged: 0, unknown: 0 };
+  const flaggedFindings =
+    check?.findings?.length ? engineCounts.flagged : fallbackFindings.filter((item) => item.status === "Flagged").length;
+  const unknownFindings =
+    check?.findings?.length ? engineCounts.unknown : fallbackFindings.filter((item) => item.status === "Not determined").length;
 
   async function onFlag(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -359,7 +342,9 @@ export function EvidenceView({ checkId }: { checkId: string }) {
   }
 
   const summary = riskSummary(check.riskBand, check.direction);
-  const queueStatus = findings.length > 0 ? summary.queue : "NEEDS INPUT";
+  const queueStatus = flaggedFindings + unknownFindings + (check.findings?.length ?? fallbackFindings.length) > 0
+    ? summary.queue
+    : "NEEDS INPUT";
 
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6 px-5 py-8 md:px-8 md:py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start">
@@ -374,7 +359,7 @@ export function EvidenceView({ checkId }: { checkId: string }) {
           riskBand={check.riskBand}
           riskScore={check.riskScore}
           direction={check.direction}
-          queueLine={`${check.verdict} · ${check.riskScore} · ${flaggedFindings} flagged · ${unknownFindings} unknown · ${queueStatus}`}
+          queueLine={queueLineForCheck(check, queueStatus)}
         />
 
         <section className="mt-7" aria-labelledby="recommended-action">
@@ -398,20 +383,24 @@ export function EvidenceView({ checkId }: { checkId: string }) {
             </div>
             <p className="text-xs text-kc-gray">Score impact is capped at 100.</p>
           </div>
-          <div className="space-y-3">
-            {findings.map((item, index) => (
-              <FindingRow
-                key={item.id}
-                title={item.title}
-                status={item.status}
-                points={item.points}
-                explanation={item.explanation}
-                snippet={item.snippet}
-                source={item.source}
-                index={index}
-              />
-            ))}
-          </div>
+          {check.findings?.length ? (
+            <CheckFindings findings={check.findings} />
+          ) : (
+            <div className="space-y-3">
+              {fallbackFindings.map((item, index) => (
+                <FindingRow
+                  key={item.id}
+                  title={item.title}
+                  status={item.status}
+                  points={item.points}
+                  explanation={item.explanation}
+                  snippet={item.snippet}
+                  source={item.source}
+                  index={index}
+                />
+              ))}
+            </div>
+          )}
         </section>
 
         {topReasons.length > 0 ? (
@@ -501,24 +490,7 @@ export function EvidenceView({ checkId }: { checkId: string }) {
       </main>
 
       <aside className="space-y-4 lg:sticky lg:top-6">
-        {employer ? (
-          <section className="rounded-3xl border border-kc-ink/10 bg-kc-white p-5 shadow-[0_8px_24px_rgba(25,26,35,0.05)]" aria-labelledby="employer-link-title">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-kc-gray">Independent verification</p>
-            <h2 id="employer-link-title" className="mt-2 text-lg font-semibold">Verify with {employer.name}</h2>
-            <p className="mt-2 text-sm leading-6 text-kc-ink/70">Use the organization’s own recruitment information to confirm this opportunity.</p>
-            <a href={employer.careersUrl ?? employer.officialUrl} target="_blank" rel="noreferrer" className="mt-4 flex min-h-11 items-center justify-between gap-3 rounded-xl bg-kc-ink px-4 py-3 text-sm font-semibold text-kc-on-ink hover:bg-kc-ink/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kc-ink">
-              {employer.careersUrl ? "Open official careers page" : "Open official website"}
-              <span aria-hidden="true">↗</span>
-            </a>
-            <p className="mt-3 break-all font-mono text-xs text-kc-gray">{employer.careersUrl ?? employer.officialUrl}</p>
-          </section>
-        ) : (
-          <section className="rounded-3xl border border-kc-ink/10 bg-kc-muted/70 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-kc-gray">Verify independently</p>
-            <h2 className="mt-2 text-lg font-semibold">Use an official channel</h2>
-            <p className="mt-2 text-sm leading-6 text-kc-ink/70">Find the employer’s website yourself and use its published careers contact. Don’t rely on links in a suspicious message.</p>
-          </section>
-        )}
+        <OfficialOrgSidebar check={check} />
 
         <section className="rounded-3xl border border-kc-ink/10 bg-kc-muted/60 p-5">
           <h2 className="font-semibold">How to read this result</h2>

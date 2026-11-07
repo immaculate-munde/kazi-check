@@ -137,9 +137,11 @@ Built in now — not a wishlist. Honest about the limits.
 | **Apply is official-only** | Destination is the indexed careers URL or corporate email. Chat URLs (`wa.me`, Telegram) are refused. We **do not** log into third-party sites or submit forms. |
 | **Drafts are copy-only** | Cover text is never emailed or posted by us. Master profile is rejected if it contains ID, KRA PIN, or passport. Drafts do not attach identity documents. |
 | **Flag dedupe** | Community flags hash `IP + user-agent` (SHA-256, truncated). No login in v1. Same fingerprint cannot spam the same subject. Flags require a **reason**. |
+| **IP rate limit** | `POST /api/checks` and `POST /api/bot/upload` allow 30 writes / 10 minutes per **hashed** IP. Raw IPs are not stored. |
 | **Batch isolation** | One bad/unreadable ad fails that row; the rest of the batch continues. |
+| **RDAP / MX** | Domain age and mail records are extra evidence. Unknown or missing MX never stamps SCAM. |
 
-**Not yet (do not assume these):** login/auth, encrypted-at-rest Postgres beyond what you configure, IP rate limits, live WHOIS/RDAP, live ThriveWave HTTP, or a legal determination.
+**Not yet (do not assume these):** login/auth, encrypted-at-rest Postgres beyond what you configure, live ThriveWave HTTP, or a legal determination.
 
 ---
 
@@ -240,13 +242,15 @@ Expect **SCAM**. A clean Safaricom careers-portal ad should return **No red flag
 - Text-rules for fees, M-Pesa/till, urgency, fake salary, PIN/OTP/ID
 - Official listings index · OCR (tesseract.js / unpdf) · PII mask
 - **Postgres via Prisma** when `DATABASE_URL` is set · in-memory fallback otherwise
+- RDAP domain age + DNS MX as extra evidence (not stacked verdicts)
+- Job Bot queue persisted in Postgres when `DATABASE_URL` is set
 - ThriveWave SMS/USSD **stubs** until HTTP is wired
 
 ---
 
 ## What's next
 
-Stay on **this** repo. Next engine work is tracked in [#41](https://github.com/immaculate-munde/kazi-check/issues/41): organisation directory, registry statuses, RDAP/MX, ThriveWave HTTP, then result UX.
+Stay on **this** repo. Remaining from [#41](https://github.com/immaculate-munde/kazi-check/issues/41): **ThriveWave HTTP + SMS opt-out table**. Admin org CRUD can wait.
 
 Do **not**: switch to MySQL, store unmasked victim PII, scrape applications, or auto-submit via WhatsApp.
 
