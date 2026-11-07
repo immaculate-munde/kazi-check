@@ -1,8 +1,9 @@
 import { randomUUID } from "crypto";
 import { gate } from "@/lib/bot/gate";
+import { countFindings, queueLineForBot } from "@/lib/check/queue-line";
 import { maskPii } from "@/lib/pii";
 import { runCheckPipeline } from "@/lib/pipeline/run-check";
-import { memorySaveBotItem } from "@/lib/store/memory";
+import { saveBotItem } from "@/lib/store";
 import type { BotQueueItem } from "@/lib/types";
 import type { RawAd } from "@/lib/bot/source";
 
@@ -26,7 +27,7 @@ export async function processAd(
     createdAt: now,
     updatedAt: now,
   };
-  memorySaveBotItem(item);
+  await saveBotItem(item);
 
   try {
     if (ad.unreadable && !ad.text.trim()) {
@@ -42,12 +43,12 @@ export async function processAd(
         ],
         updatedAt: new Date().toISOString(),
       };
-      memorySaveBotItem(item);
+      await saveBotItem(item);
       return item;
     }
 
     item = { ...item, status: "extracted", updatedAt: new Date().toISOString() };
-    memorySaveBotItem(item);
+    await saveBotItem(item);
 
     const check = await runCheckPipeline({
       direction: "job_offer",
@@ -57,18 +58,22 @@ export async function processAd(
 
     const extraGaps = [...item.gaps, ...check.gaps];
     const gateResult = gate(check.verdict, check.evidence, extraGaps);
+    const counts = countFindings(check.findings);
 
     item = {
       ...item,
       status: "gated",
       checkId: check.id,
       verdict: check.verdict,
+      riskScore: check.riskScore,
+      flaggedCount: counts.flagged,
+      unknownCount: counts.unknown,
       gate: gateResult,
       reason: check.evidence[0]?.title ?? check.recommendedAction,
       gaps: [...new Set(extraGaps)],
       updatedAt: new Date().toISOString(),
     };
-    memorySaveBotItem(item);
+    await saveBotItem(item);
     return item;
   } catch (err) {
     item = {
@@ -78,7 +83,7 @@ export async function processAd(
       reason: err instanceof Error ? err.message : "Processing failed",
       updatedAt: new Date().toISOString(),
     };
-    memorySaveBotItem(item);
+    await saveBotItem(item);
     return item;
   }
 }
@@ -96,12 +101,14 @@ export async function processBatch(
 
 export function queueTable(items: BotQueueItem[]): {
   ad: string;
+  line: string;
   verdict: string;
   gate: string;
   reason: string;
 }[] {
   return items.map((i) => ({
     ad: i.filename ?? i.id,
+    line: queueLineForBot(i),
     verdict: i.verdict ?? i.status,
     gate: i.gate ?? i.status,
     reason: i.reason ?? i.error ?? "",

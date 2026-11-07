@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { memoryGetBotItem, memorySaveBotItem } from "@/lib/store/memory";
+import { getBotItem, saveBotItem } from "@/lib/store";
 
 export const instant = false;
 
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const item = memoryGetBotItem(parsed.data.id);
+  const item = await getBotItem(parsed.data.id);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (item.gate === "BLOCKED") {
     return NextResponse.json({ error: "Blocked ads cannot be confirmed" }, { status: 400 });
@@ -31,6 +31,6 @@ export async function POST(request: Request) {
     confirmedGaps: parsed.data.confirmedGaps,
     updatedAt: new Date().toISOString(),
   };
-  memorySaveBotItem(updated);
+  await saveBotItem(updated);
   return NextResponse.json(updated);
 }

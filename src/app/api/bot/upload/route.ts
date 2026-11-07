@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ipRateLimitResponse } from "@/lib/http/rate-limit";
 import { UploadSource } from "@/lib/bot/source";
 import {
   enforceBatchCap,
@@ -16,6 +17,8 @@ export const instant = false;
  * then dropped — nothing is written to disk.
  */
 export async function POST(request: Request) {
+  const limited = ipRateLimitResponse(request);
+  if (limited) return limited;
   const form = await request.formData();
   const ads: RawAd[] = [];
   const errors: { filename: string; reason: string }[] = [];

@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { canDraft } from "@/lib/bot/gate";
 import { draftApplication } from "@/lib/bot/draft";
-import { getCheck } from "@/lib/store";
-import { memoryGetBotItem, memorySaveBotItem } from "@/lib/store/memory";
+import { getBotItem, getCheck, saveBotItem } from "@/lib/store";
 
 export const instant = false;
 
@@ -14,7 +13,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const item = memoryGetBotItem(parsed.data.id);
+  const item = await getBotItem(parsed.data.id);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
   if (!item.gate) {
     return NextResponse.json({ error: "Ad is not gated yet" }, { status: 400 });
@@ -37,6 +36,6 @@ export async function POST(request: Request) {
     draftText,
     updatedAt: new Date().toISOString(),
   };
-  memorySaveBotItem(updated);
+  await saveBotItem(updated);
   return NextResponse.json(updated);
 }

@@ -1,7 +1,7 @@
 import { canDraft } from "@/lib/bot/gate";
 import { draftApplication } from "@/lib/bot/draft";
-import { getCheck } from "@/lib/store";
-import { memorySaveBotItem, memoryUpsertTracker } from "@/lib/store/memory";
+import { getCheck, saveBotItem } from "@/lib/store";
+import { memoryUpsertTracker } from "@/lib/store/memory";
 import type { ApplyPacket, BotQueueItem, CheckRecord } from "@/lib/types";
 
 function isChatUrl(url: string): boolean {
@@ -102,6 +102,6 @@ export async function recordApply(
     apply: { ...packet, trackerId: tracker.id },
     updatedAt: new Date().toISOString(),
   };
-  memorySaveBotItem(updated);
+  await saveBotItem(updated);
   return updated;
 }
