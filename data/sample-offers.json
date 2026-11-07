@@ -1,0 +1,12 @@
+[
+  {
+    "id": "scam_001",
+    "label": "scam",
+    "text": "KenGen is hiring! Apply at kencareers-apply.com and pay KES 3000 medical fee before interview. Contact hr@gmail.com"
+  },
+  {
+    "id": "genuine_001",
+    "label": "genuine",
+    "text": "Safaricom PLC careers update: roles are posted only on safaricom.co.ke/careers. Never pay to apply."
+  }
+]
