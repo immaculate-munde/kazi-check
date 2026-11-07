@@ -49,7 +49,7 @@ export function heuristicExtract(direction: CheckDirection, text: string): Extra
   const domains = subjects.filter((s) => s.kind === "domain").map((s) => s.key);
   const urls = (text.match(/https?:\/\/\S+/gi) ?? []).map((u) => u.replace(/[),.;]+$/, ""));
 
-  const feeHits =
+  const feeHits: string[] =
     text.match(
       /(?:interview|medical|visa|training|background|application|registration|clearance|processing)\s+(?:fee|fees|payment|pay)/gi,
     ) ?? [];

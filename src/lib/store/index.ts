@@ -1,4 +1,4 @@
-import { usePrisma } from "@/lib/db";
+import { prismaEnabled } from "@/lib/db";
 import type {
   CheckDirection,
   CheckRecord,
@@ -61,7 +61,7 @@ export async function getOrCreateSubject(
   direction: CheckDirection | null,
   summary = "",
 ) {
-  if (usePrisma()) {
+  if (prismaEnabled()) {
     return prismaGetOrCreateSubject(kind, key, direction, summary);
   }
   const row = memoryGetOrCreateSubject(kind, key, direction, summary);
@@ -77,17 +77,17 @@ export async function getOrCreateSubject(
 export async function createCheck(
   input: CreateCheckStoreInput,
 ): Promise<CheckRecord> {
-  if (usePrisma()) return prismaCreateCheck(input);
+  if (prismaEnabled()) return prismaCreateCheck(input);
   return memoryCreateCheck(input);
 }
 
 export async function getCheck(id: string): Promise<CheckRecord | null> {
-  if (usePrisma()) return prismaGetCheck(id);
+  if (prismaEnabled()) return prismaGetCheck(id);
   return memoryGetCheck(id);
 }
 
 export async function listChecks(): Promise<CheckRecord[]> {
-  if (usePrisma()) return prismaListChecks();
+  if (prismaEnabled()) return prismaListChecks();
   return memoryListChecks();
 }
 
@@ -95,36 +95,36 @@ export async function updateCheck(
   id: string,
   patch: Partial<CheckRecord>,
 ): Promise<CheckRecord | null> {
-  if (usePrisma()) return prismaUpdateCheck(id, patch);
+  if (prismaEnabled()) return prismaUpdateCheck(id, patch);
   return memoryUpdateCheck(id, patch);
 }
 
 export async function listRegistry(
   direction?: CheckDirection,
 ): Promise<RegistrySubject[]> {
-  if (usePrisma()) return prismaListRegistry(direction);
+  if (prismaEnabled()) return prismaListRegistry(direction);
   return memoryListRegistry(direction);
 }
 
 export async function getSubject(
   id: string,
 ): Promise<RegistrySubject | null> {
-  if (usePrisma()) return prismaGetSubject(id);
+  if (prismaEnabled()) return prismaGetSubject(id);
   return memoryGetSubject(id);
 }
 
 export async function addFlag(input: FlagInput) {
-  if (usePrisma()) return prismaAddFlag(input);
+  if (prismaEnabled()) return prismaAddFlag(input);
   return memoryAddFlag(input);
 }
 
 export async function lookupFlagCounts(
   pairs: { kind: SubjectKind; key: string }[],
 ) {
-  if (usePrisma()) return prismaLookupFlagCounts(pairs);
+  if (prismaEnabled()) return prismaLookupFlagCounts(pairs);
   return memoryLookupFlagCounts(pairs);
 }
 
 export function storeBackend(): "prisma" | "memory" {
-  return usePrisma() ? "prisma" : "memory";
+  return prismaEnabled() ? "prisma" : "memory";
 }
