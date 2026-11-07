@@ -6,7 +6,7 @@ Two-way recruitment trust for Kenya: **verify job offers**, **verify applicants*
 
 - **Next.js** (App Router) + TypeScript + Tailwind CSS
 - UI: [Positivus](https://www.figma.com/community/file/1230604708032389430/positivus-landing-page-design)
-- API Route Handlers + in-memory store (Prisma schema ready for Postgres)
+- API Route Handlers + **Postgres via Prisma** when `DATABASE_URL` is set (in-memory fallback otherwise)
 - ThriveWave SMS/USSD stubs · RumptyCloud deploy notes in `infra/`
 
 ## Quick start
@@ -23,13 +23,16 @@ npm test
 npm run seed
 ```
 
-Optional Postgres (when wiring Prisma persistence):
+Postgres (checks, registry, flags persist across restarts):
 
 ```bash
 docker compose up -d
-cp .env.example .env   # set DATABASE_URL
-npx prisma migrate dev
+cp .env.example .env   # DATABASE_URL points at local Postgres
+npx prisma migrate dev --name init
+npm run seed
 ```
+
+Without `DATABASE_URL`, the app uses the in-memory store (data resets on restart). Skills / quiz / offers / tracker stay in memory for now.
 
 ## API (scaffolded)
 

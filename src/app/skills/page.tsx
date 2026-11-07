@@ -71,15 +71,15 @@ function SkillsForm() {
             className="w-full rounded-2xl border-2 border-kc-ink bg-kc-white px-4 py-3 text-kc-ink"
           />
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          <div className="flex flex-wrap gap-3">
-            <Button type="submit" variant="solid" disabled={loading}>
-              {loading ? "Matching…" : "Run skill match"}
-            </Button>
-            <Button href="/quiz" variant="outline">
-              Take a domain quiz
-            </Button>
-          </div>
+          <Button type="submit" variant="solid" disabled={loading}>
+            {loading ? "Matching…" : "Run skill match"}
+          </Button>
         </form>
+        <div className="mt-4">
+          <Button href="/quiz" variant="outline">
+            Take a domain quiz
+          </Button>
+        </div>
       </BrutalCard>
     </div>
   );

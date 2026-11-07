@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildApplyPacket, recordApply } from "@/lib/bot/apply";
-import { memoryGetBotItem, memoryGetCheck } from "@/lib/store/memory";
+import { getCheck } from "@/lib/store";
+import { memoryGetBotItem } from "@/lib/store/memory";
 
 export const instant = false;
 
@@ -15,12 +16,12 @@ export async function POST(request: Request) {
   const item = memoryGetBotItem(parsed.data.id);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const check = item.checkId ? memoryGetCheck(item.checkId) : null;
+  const check = item.checkId ? await getCheck(item.checkId) : null;
   const built = buildApplyPacket(item, check);
   if (!built.ok) {
     return NextResponse.json({ error: built.error }, { status: 400 });
   }
 
-  const updated = recordApply(item, built.packet);
+  const updated = await recordApply(item, built.packet);
   return NextResponse.json(updated);
 }

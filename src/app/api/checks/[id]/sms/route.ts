@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { smsSchema } from "@/lib/http/schemas";
-import { memoryGetCheck } from "@/lib/store/memory";
+import { getCheck } from "@/lib/store";
 import { formatVerdictSms, sendSms } from "@/lib/thrivewave";
 
 export const instant = false;
@@ -12,7 +12,7 @@ export async function POST(
   context: { params: Params },
 ) {
   const { id } = await context.params;
-  const check = memoryGetCheck(id);
+  const check = await getCheck(id);
   if (!check) {
     return NextResponse.json({ error: "Check not found" }, { status: 404 });
   }

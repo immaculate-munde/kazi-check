@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { trackerPrefillHref } from "@/lib/tracker/query";
 import type { OfferAnalysisRecord } from "@/lib/types";
 import { displayVerdict } from "@/lib/verdict";
 
@@ -94,8 +95,18 @@ export function OfferResultClient({ id }: { id: string }) {
         </section>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button href="/tracker" variant="outline">
-            Open tracker
+          <Button
+            href={trackerPrefillHref({
+              title: record.extracted.jobTitle || "Offer letter",
+              employer: record.extracted.employer || "Unknown employer",
+              notes: `Offer verdict: ${record.verdict}`,
+              verificationResult: `${record.verdict} (${record.riskScore}/100)`,
+              source: "offer check",
+              autosave: true,
+            })}
+            variant="outline"
+          >
+            Track this offer
           </Button>
           <Button href="/check?direction=job_offer" variant="solid">
             Check another advert

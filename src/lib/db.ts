@@ -1,4 +1,10 @@
+import { config } from "dotenv";
 import { PrismaClient } from "@prisma/client";
+
+// Prefer project .env over a stale shell DATABASE_URL (common on Windows).
+if (process.env.NODE_ENV !== "production") {
+  config({ override: true });
+}
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
