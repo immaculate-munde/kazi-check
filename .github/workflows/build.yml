@@ -33,10 +33,17 @@ jobs:
         - name: Install dependencies
           run: npm ci
 
+        - name: Generate Prisma client
+          run: npx prisma generate
+          env:
+            DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
+
         - name: Run linter
           run: npm run lint
         - name: Run tests
           run: npm test
+          env:
+            DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
   build:
     runs-on: ubuntu-latest
 
@@ -90,9 +97,13 @@ jobs:
 
       - name: Generate Prisma client
         run: npx prisma generate
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
 
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
 
     #   - name: Upload artifact
     #     uses: actions/upload-pages-artifact@v3
