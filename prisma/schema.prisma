@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CheckDirection {
+  job_offer
+  applicant
+}
+
+enum SubjectKind {
+  domain
+  phone
+  url
+  handle
+  email
+}
+
+model Check {
+  id         String         @id @default(cuid())
+  direction  CheckDirection
+  rawText    String
+  url        String?
+  verdict    String
+  score      Float          @default(0)
+  extracted  Json
+  createdAt  DateTime       @default(now())
+  evidence   Evidence[]
+  subjects   CheckSubject[]
+}
+
+model Evidence {
+  id       String @id @default(cuid())
+  checkId  String
+  check    Check  @relation(fields: [checkId], references: [id], onDelete: Cascade)
+  ruleId   String
+  title    String
+  snippet  String
+  severity String
+}
+
+model Subject {
+  id            String         @id @default(cuid())
+  kind          SubjectKind
+  key           String
+  direction     CheckDirection?
+  flagCount     Int            @default(0)
+  summary       String         @default("")
+  lastFlaggedAt DateTime?
+  createdAt     DateTime       @default(now())
+  flags         Flag[]
+  checks        CheckSubject[]
+
+  @@unique([kind, key])
+  @@index([flagCount])
+}
+
+model CheckSubject {
+  checkId   String
+  subjectId String
+  check     Check   @relation(fields: [checkId], references: [id], onDelete: Cascade)
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@id([checkId, subjectId])
+}
+
+model Flag {
+  id              String   @id @default(cuid())
+  subjectId       String
+  subject         Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  fingerprintHash String
+  reason          String?
+  createdAt       DateTime @default(now())
+
+  @@unique([subjectId, fingerprintHash])
+}
+
+model DomainWhitelist {
+  id        String   @id @default(cuid())
+  domain    String   @unique
+  orgName   String
+  createdAt DateTime @default(now())
+}
+
+model Impersonation {
+  id             String   @id @default(cuid())
+  fakePattern    String
+  officialDomain String
+  orgName        String
+  createdAt      DateTime @default(now())
+
+  @@index([fakePattern])
+}
