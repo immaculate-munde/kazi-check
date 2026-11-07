@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { memoryGetCheck } from "@/lib/store/memory";
+import { getCheck } from "@/lib/store";
 
 export const instant = false;
 
@@ -10,7 +10,7 @@ export async function GET(
   context: { params: Params },
 ) {
   const { id } = await context.params;
-  const check = memoryGetCheck(id);
+  const check = await getCheck(id);
   if (!check) {
     return NextResponse.json({ error: "Check not found" }, { status: 404 });
   }

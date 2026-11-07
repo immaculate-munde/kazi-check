@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { trackerPrefillHref } from "@/lib/tracker/query";
 import type { SkillMatchRecord } from "@/lib/types";
 
 export function SkillResultClient({ id }: { id: string }) {
@@ -30,27 +31,52 @@ export function SkillResultClient({ id }: { id: string }) {
           a chance-of-hire)
         </p>
 
-        <div className="mt-8 overflow-x-auto">
-          <table className="w-full min-w-[480px] border-collapse text-left text-sm">
-            <thead>
-              <tr className="border-b-2 border-kc-ink">
-                <th className="py-2 pr-3">Skill</th>
-                <th className="py-2 pr-3">Requirement</th>
-                <th className="py-2 pr-3">Your level</th>
-                <th className="py-2">Note</th>
-              </tr>
-            </thead>
-            <tbody>
-              {record.gaps.map((g) => (
-                <tr key={g.skill} className="border-b border-kc-ink/20">
-                  <td className="py-3 pr-3 font-medium">{g.skill}</td>
-                  <td className="py-3 pr-3">{g.requirement}</td>
-                  <td className="py-3 pr-3">{g.assessment.replaceAll("_", " ")}</td>
-                  <td className="py-3 text-kc-ink/75">{g.note}</td>
+        <div className="mt-8">
+          <h2 className="sr-only">Skill requirement breakdown</h2>
+          <div className="space-y-3 md:hidden">
+            {record.gaps.map((g) => (
+              <article key={g.skill} className="rounded-2xl border border-kc-ink/10 bg-kc-muted/60 p-4">
+                <h2 className="break-words text-base font-semibold">{g.skill}</h2>
+                <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                  <div>
+                    <dt className="text-xs font-medium uppercase tracking-wide text-kc-gray">Requirement</dt>
+                    <dd className="mt-1 break-words">{g.requirement}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-medium uppercase tracking-wide text-kc-gray">Your level</dt>
+                    <dd className="mt-1 break-words capitalize">{g.assessment.replaceAll("_", " ")}</dd>
+                  </div>
+                  <div className="col-span-2 border-t border-kc-ink/10 pt-3">
+                    <dt className="text-xs font-medium uppercase tracking-wide text-kc-gray">Note</dt>
+                    <dd className="mt-1 break-words text-kc-ink/75">{g.note}</dd>
+                  </div>
+                </dl>
+              </article>
+            ))}
+          </div>
+          <div className="hidden overflow-hidden rounded-2xl border border-kc-ink/10 md:block">
+            <table className="w-full border-collapse text-left text-sm">
+              <caption className="sr-only">Skill requirements and your assessed levels</caption>
+              <thead>
+                <tr className="border-b border-kc-ink/10 bg-kc-muted text-xs uppercase tracking-wide text-kc-gray">
+                  <th scope="col" className="px-4 py-3">Skill</th>
+                  <th scope="col" className="px-4 py-3">Requirement</th>
+                  <th scope="col" className="px-4 py-3">Your level</th>
+                  <th scope="col" className="px-4 py-3">Note</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {record.gaps.map((g, index) => (
+                  <tr key={g.skill} className={`align-top ${index < record.gaps.length - 1 ? "border-b border-kc-ink/10" : ""}`}>
+                    <th scope="row" className="px-4 py-4 font-semibold">{g.skill}</th>
+                    <td className="px-4 py-4">{g.requirement}</td>
+                    <td className="px-4 py-4 capitalize">{g.assessment.replaceAll("_", " ")}</td>
+                    <td className="max-w-xs break-words px-4 py-4 text-kc-ink/75">{g.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div className="mt-8">
@@ -66,8 +92,19 @@ export function SkillResultClient({ id }: { id: string }) {
           <Button href="/quiz" variant="solid">
             Take domain quiz
           </Button>
-          <Button href="/tracker" variant="outline">
-            Open tracker
+          <Button
+            href={trackerPrefillHref({
+              title: record.jobTitle || "Skill-matched role",
+              employer: "From skill match",
+              notes: `Compatibility ${record.compatibilityScore}%`,
+              checkId: record.checkId,
+              verificationResult: `Skill match ${record.compatibilityScore}%`,
+              source: "skill match",
+              autosave: true,
+            })}
+            variant="outline"
+          >
+            Track this role
           </Button>
         </div>
       </BrutalCard>

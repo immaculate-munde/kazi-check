@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import type {
+  BotQueueItem,
   CheckDirection,
   CheckRecord,
   CreateCheckInput,
@@ -7,7 +8,10 @@ import type {
   Extracted,
   FlagInput,
   OfferAnalysisRecord,
+  Finding,
+  OfficialListingMatch,
   QuizResult,
+  RegistryStatus,
   RegistrySubject,
   SkillMatchRecord,
   SubjectKind,
@@ -17,6 +21,7 @@ import type {
   Verdict,
   RiskBand,
 } from "@/lib/types";
+import { aggregateReasons } from "@/lib/store/reasons";
 import { MOCK_SEED_SUBJECTS } from "@/lib/store/seed-data";
 
 type SubjectRow = Omit<RegistrySubject, "recentFlags" | "topReasons"> & {
@@ -32,16 +37,20 @@ type MemoryDb = {
   quizzes: Map<string, QuizResult>;
   offers: Map<string, OfferAnalysisRecord>;
   tracker: Map<string, TrackerItem>;
+  botQueue: Map<string, BotQueueItem>;
 };
 
 const globalStore = globalThis as unknown as { __kcStore?: MemoryDb };
 
-function db(): MemoryDb {
-  if (!globalStore.__kcStore) {
+function ensureStore(): MemoryDb {
+  const existing = globalStore.__kcStore as MemoryDb | undefined;
+  if (!existing) {
     const subjects = new Map<string, SubjectRow>();
     for (const s of MOCK_SEED_SUBJECTS) {
       subjects.set(s.id, {
         ...s,
+        topReasons: s.topReasons ?? [],
+        recentFlags: s.recentFlags ?? [],
         flags: (s.recentFlags ?? []).map((f, i) => ({
           fingerprintHash: `seed_${s.id}_${i}`,
           reason: f.reason,
@@ -56,39 +65,58 @@ function db(): MemoryDb {
       quizzes: new Map(),
       offers: new Map(),
       tracker: new Map(),
+      botQueue: new Map(),
     };
+    return globalStore.__kcStore;
   }
-  return globalStore.__kcStore;
+
+  // HMR-safe: older process stores may miss newer maps/fields.
+  existing.checks ??= new Map();
+  existing.subjects ??= new Map();
+  existing.skillMatches ??= new Map();
+  existing.quizzes ??= new Map();
+  existing.offers ??= new Map();
+  existing.tracker ??= new Map();
+  existing.botQueue ??= new Map();
+
+  for (const [id, row] of existing.subjects) {
+    row.flags ??= [];
+    row.status ??= "unverified";
+    row.isPublished ??= false;
+    row.topReasons ??= aggregateReasons(row.flags);
+    row.recentFlags ??= row.flags
+      .slice()
+      .reverse()
+      .slice(0, 8)
+      .map((f) => ({ reason: f.reason, createdAt: f.createdAt }));
+    existing.subjects.set(id, row);
+  }
+
+  return existing;
 }
 
-function aggregateReasons(flags: { reason: string }[]): string[] {
-  const counts = new Map<string, number>();
-  for (const f of flags) {
-    const r = f.reason.trim();
-    if (!r) continue;
-    counts.set(r, (counts.get(r) ?? 0) + 1);
-  }
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([reason]) => reason)
-    .slice(0, 5);
+function db(): MemoryDb {
+  return ensureStore();
 }
 
 function toPublicSubject(row: SubjectRow): RegistrySubject {
+  const flags = row.flags ?? [];
   const topReasons =
-    row.topReasons.length > 0
+    (row.topReasons?.length ?? 0) > 0
       ? row.topReasons
-      : aggregateReasons(row.flags);
+      : aggregateReasons(flags);
   return {
     id: row.id,
     kind: row.kind,
     key: row.key,
     direction: row.direction,
-    flagCount: row.flagCount,
-    summary: row.summary,
+    flagCount: row.flagCount ?? flags.length,
+    summary: row.summary ?? "",
     lastFlaggedAt: row.lastFlaggedAt,
+    status: row.status ?? "unverified",
+    isPublished: row.isPublished ?? false,
     topReasons,
-    recentFlags: row.flags
+    recentFlags: flags
       .slice()
       .reverse()
       .slice(0, 8)
@@ -114,6 +142,8 @@ export function memoryGetOrCreateSubject(
     flagCount: 0,
     summary,
     lastFlaggedAt: null,
+    status: "unverified",
+    isPublished: false,
     topReasons: [],
     recentFlags: [],
     flags: [],
@@ -133,7 +163,12 @@ export function memoryCreateCheck(input: {
   recommendedAction: string;
   extracted: Extracted;
   evidence: EvidenceItem[];
+  findings?: Finding[];
   subjects: SubjectRef[];
+  gaps: string[];
+  confirmYourself: string[];
+  officialListing?: OfficialListingMatch;
+  notifyPhone?: string | null;
 }): CheckRecord {
   const record: CheckRecord = {
     id: `chk_${randomUUID().slice(0, 10)}`,
@@ -147,7 +182,13 @@ export function memoryCreateCheck(input: {
     recommendedAction: input.recommendedAction,
     extracted: input.extracted,
     evidence: input.evidence,
+    findings: input.findings ?? [],
     subjects: input.subjects,
+    gaps: input.gaps,
+    confirmYourself: input.confirmYourself,
+    officialListing: input.officialListing,
+    notifyPhone: input.notifyPhone ?? null,
+    retroAlertedAt: null,
     createdAt: new Date().toISOString(),
   };
   db().checks.set(record.id, record);
@@ -156,6 +197,23 @@ export function memoryCreateCheck(input: {
 
 export function memoryGetCheck(id: string): CheckRecord | null {
   return db().checks.get(id) ?? null;
+}
+
+export function memoryListChecks(): CheckRecord[] {
+  return [...db().checks.values()].sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
+}
+
+export function memoryUpdateCheck(
+  id: string,
+  patch: Partial<CheckRecord>,
+): CheckRecord | null {
+  const existing = db().checks.get(id);
+  if (!existing) return null;
+  const next = { ...existing, ...patch };
+  db().checks.set(id, next);
+  return next;
 }
 
 export function memoryListRegistry(
@@ -241,23 +299,40 @@ export function memoryAddFlag(input: FlagInput): {
   };
 }
 
+function statusRank(status: RegistryStatus | undefined): number {
+  if (status === "confirmed") return 2;
+  if (status === "under_investigation") return 1;
+  return 0;
+}
+
 export function memoryLookupFlagCounts(
   pairs: { kind: SubjectKind; key: string }[],
-): { count: number; reasons: string[] } {
+): {
+  count: number;
+  reasons: string[];
+  status: RegistryStatus;
+  published: boolean;
+} {
   const store = db();
   let max = 0;
   let reasons: string[] = [];
+  let status: RegistryStatus = "unverified";
+  let published = false;
   for (const p of pairs) {
     for (const s of store.subjects.values()) {
-      if (s.kind === p.kind && s.key === p.key) {
-        if (s.flagCount > max) {
-          max = s.flagCount;
-          reasons = aggregateReasons(s.flags);
-        }
+      if (s.kind !== p.kind || s.key !== p.key) continue;
+      if (!s.isPublished) continue;
+      published = true;
+      if (s.flagCount > max) {
+        max = s.flagCount;
+        reasons = aggregateReasons(s.flags);
+      }
+      if (statusRank(s.status) > statusRank(status)) {
+        status = s.status ?? "unverified";
       }
     }
   }
-  return { count: max, reasons };
+  return { count: max, reasons, status, published };
 }
 
 export function memorySaveSkillMatch(record: SkillMatchRecord) {
@@ -319,6 +394,21 @@ export function memoryUpsertTracker(
 
 export function memoryDeleteTracker(id: string) {
   return db().tracker.delete(id);
+}
+
+export function memorySaveBotItem(item: BotQueueItem) {
+  db().botQueue.set(item.id, item);
+  return item;
+}
+
+export function memoryGetBotItem(id: string) {
+  return db().botQueue.get(id) ?? null;
+}
+
+export function memoryListBotQueue(): BotQueueItem[] {
+  return [...db().botQueue.values()].sort((a, b) =>
+    b.createdAt.localeCompare(a.createdAt),
+  );
 }
 
 export type { CreateCheckInput };

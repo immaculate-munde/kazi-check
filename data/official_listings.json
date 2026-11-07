@@ -1,0 +1,122 @@
+[
+  {
+    "orgName": "Safaricom",
+    "aliases": ["Safaricom PLC", "Safaricom Limited"],
+    "officialDomain": "safaricom.co.ke",
+    "officialApplyRoute": "portal",
+    "applyUrl": "https://www.safaricom.co.ke/careers/",
+    "emailDomain": "safaricom.co.ke",
+    "listingTitle": "Safaricom careers",
+    "listingUrl": "https://www.safaricom.co.ke/careers/",
+    "dateIndexed": "2026-11-07",
+    "chargesFee": false
+  },
+  {
+    "orgName": "Kenya Railways",
+    "aliases": ["Kenya Railways Corporation", "KRC"],
+    "officialDomain": "krc.co.ke",
+    "officialApplyRoute": "portal",
+    "applyUrl": "https://krc.co.ke/careers/",
+    "emailDomain": "krc.co.ke",
+    "listingTitle": "Kenya Railways careers",
+    "listingUrl": "https://krc.co.ke/careers/",
+    "dateIndexed": "2026-11-07",
+    "chargesFee": false
+  },
+  {
+    "orgName": "Kenya Revenue Authority",
+    "aliases": ["KRA"],
+    "officialDomain": "kra.go.ke",
+    "officialApplyRoute": "portal",
+    "applyUrl": "https://kra.go.ke/careers",
+    "emailDomain": "kra.go.ke",
+    "listingTitle": "KRA careers",
+    "listingUrl": "https://kra.go.ke/careers",
+    "dateIndexed": "2026-11-07",
+    "chargesFee": false
+  },
+  {
+    "orgName": "KenGen",
+    "aliases": ["Kenya Electricity Generating Company"],
+    "officialDomain": "kengen.co.ke",
+    "officialApplyRoute": "portal",
+    "applyUrl": "https://career.kengen.co.ke/",
+    "emailDomain": "kengen.co.ke",
+    "listingTitle": "KenGen careers portal",
+    "listingUrl": "https://career.kengen.co.ke/",
+    "dateIndexed": "2026-11-07",
+    "chargesFee": false
+  },
+  {
+    "orgName": "KCB",
+    "aliases": ["KCB Bank", "KCB Group"],
+    "officialDomain": "kcbgroup.com",
+    "officialApplyRoute": "portal",
+    "applyUrl": "https://ke.kcbgroup.com/careers",
+    "emailDomain": "kcbgroup.com",
+    "listingTitle": "KCB Group careers",
+    "listingUrl": "https://ke.kcbgroup.com/careers",
+    "dateIndexed": "2026-11-07",
+    "chargesFee": false
+  },
+  {
+    "orgName": "Central Bank of Kenya",
+    "aliases": ["CBK"],
+    "officialDomain": "centralbank.go.ke",
+    "officialApplyRoute": "portal",
+    "applyUrl": "https://careers.centralbank.go.ke/",
+    "emailDomain": "centralbank.go.ke",
+    "listingTitle": "CBK careers portal",
+    "listingUrl": "https://careers.centralbank.go.ke/",
+    "dateIndexed": "2026-11-07",
+    "chargesFee": false
+  },
+  {
+    "orgName": "Equity Bank",
+    "aliases": ["Equity Bank Kenya", "Equity Group"],
+    "officialDomain": "equitybank.co.ke",
+    "officialApplyRoute": "portal",
+    "applyUrl": "https://equitybank.taleo.net/careersection/ext_new/jobsearch.ftl",
+    "emailDomain": "equitybank.co.ke",
+    "listingTitle": "Equity Bank careers (Taleo)",
+    "listingUrl": "https://equitybank.taleo.net/careersection/ext_new/jobsearch.ftl",
+    "dateIndexed": "2026-11-07",
+    "chargesFee": false
+  },
+  {
+    "orgName": "Public Service Commission",
+    "aliases": ["PSC", "Public Service Commission of Kenya"],
+    "officialDomain": "psckjobs.go.ke",
+    "officialApplyRoute": "portal",
+    "applyUrl": "https://psckjobs.go.ke/",
+    "emailDomain": "publicservice.go.ke",
+    "listingTitle": "PSCIMS jobs portal",
+    "listingUrl": "https://psckjobs.go.ke/",
+    "dateIndexed": "2026-11-07",
+    "chargesFee": false
+  },
+  {
+    "orgName": "Kenya National Examinations Council",
+    "aliases": ["KNEC"],
+    "officialDomain": "knec.ac.ke",
+    "officialApplyRoute": "portal",
+    "applyUrl": "https://www.knec.ac.ke/category/jobs/",
+    "emailDomain": "knec.ac.ke",
+    "listingTitle": "KNEC jobs",
+    "listingUrl": "https://www.knec.ac.ke/category/jobs/",
+    "dateIndexed": "2026-11-07",
+    "chargesFee": false
+  },
+  {
+    "orgName": "Kenya Defence Forces",
+    "aliases": ["KDF", "Ministry of Defence", "Kenya Ministry of Defence"],
+    "officialDomain": "mod.go.ke",
+    "officialApplyRoute": "portal",
+    "applyUrl": "https://mod.go.ke",
+    "emailDomain": "mod.go.ke",
+    "listingTitle": "Ministry of Defence / KDF",
+    "listingUrl": "https://mod.go.ke",
+    "dateIndexed": "2026-11-07",
+    "chargesFee": false
+  }
+]
