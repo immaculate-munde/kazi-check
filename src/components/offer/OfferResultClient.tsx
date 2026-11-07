@@ -6,7 +6,9 @@ import { RiskScoreBanner } from "@/components/check/RiskScoreBanner";
 import { Button } from "@/components/ui/Button";
 import { BrutalCard } from "@/components/ui/BrutalCard";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { trackerPrefillHref } from "@/lib/tracker/query";
 import type { OfferAnalysisRecord } from "@/lib/types";
+import { displayVerdict } from "@/lib/verdict";
 
 export function OfferResultClient({ id }: { id: string }) {
   const [record, setRecord] = useState<OfferAnalysisRecord | null>(null);
@@ -68,7 +70,7 @@ export function OfferResultClient({ id }: { id: string }) {
       <div className="mb-5"><SectionLabel>Offer report</SectionLabel></div>
       <RiskScoreBanner riskBand={record.riskBand} riskScore={record.riskScore} direction="offer_letter" />
       <BrutalCard className="mt-6" tone="white">
-        <p className="font-medium">{record.verdict.replaceAll("_", " ")}</p>
+        <p className="font-medium">{displayVerdict(record.verdict)}</p>
 
         <section className="mt-8">
           <h2 className="text-xl font-semibold">Supporting details</h2>
@@ -129,8 +131,18 @@ export function OfferResultClient({ id }: { id: string }) {
         </section>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button href="/tracker" variant="outline">
-            Open tracker
+          <Button
+            href={trackerPrefillHref({
+              title: record.extracted.jobTitle || "Offer letter",
+              employer: record.extracted.employer || "Unknown employer",
+              notes: `Offer verdict: ${record.verdict}`,
+              verificationResult: `${record.verdict} (${record.riskScore}/100)`,
+              source: "offer check",
+              autosave: true,
+            })}
+            variant="outline"
+          >
+            Track this offer
           </Button>
           <Button href="/check?direction=job_offer" variant="solid">
             Check another advert

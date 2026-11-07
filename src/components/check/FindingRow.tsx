@@ -41,9 +41,14 @@ export function FindingRow({
       </div>
       <p className="mt-2 text-sm leading-6 text-kc-ink/75">{explanation}</p>
       {snippet ? (
-        <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-words rounded-xl bg-kc-muted px-3 py-3 font-mono text-xs leading-5 text-kc-ink/85">
-          {snippet}
-        </pre>
+        <details className="mt-3">
+          <summary className="cursor-pointer text-sm font-medium text-kc-ink underline decoration-kc-ink/30 underline-offset-4 hover:decoration-kc-ink">
+            Why this matched
+          </summary>
+          <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words rounded-xl bg-kc-muted px-3 py-3 font-mono text-xs leading-5 text-kc-ink/85">
+            {snippet}
+          </pre>
+        </details>
       ) : null}
       <p className="mt-3 text-xs text-kc-gray">Source: {source}</p>
     </article>

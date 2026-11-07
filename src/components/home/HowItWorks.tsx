@@ -4,7 +4,7 @@ const steps = [
   {
     n: "01",
     title: "Verify the opportunity",
-    body: "Submit an advert, get a risk score, evidence, and recommended action.",
+    body: "Submit an advert, get a risk verdict, evidence, gaps, and what to confirm yourself.",
   },
   {
     n: "02",
@@ -13,13 +13,13 @@ const steps = [
   },
   {
     n: "03",
-    title: "Check the offer",
-    body: "Analyse offer letters for green/red flags and draft clarification emails.",
+    title: "Apply on the official channel",
+    body: "If the gate allows it, open the organisation's real careers portal with a cover draft. Never WhatsApp, never a blocked ad.",
   },
   {
     n: "04",
     title: "Track and flag",
-    body: "Save opportunities, and flag recruiters with a clear reason for the community.",
+    body: "Save the application, and flag recruiters with a clear reason so the next check is smarter.",
   },
 ];
 

@@ -1,4 +1,10 @@
+import { config } from "dotenv";
 import { PrismaClient } from "@prisma/client";
+
+// Prefer project .env over a stale shell DATABASE_URL (common on Windows).
+if (process.env.NODE_ENV !== "production") {
+  config({ override: true });
+}
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
@@ -14,5 +20,6 @@ if (process.env.NODE_ENV !== "production") {
 
 /** True when a DATABASE_URL is configured (Prisma path). Otherwise memory store. */
 export function usePrisma() {
+  if (process.env.VITEST) return false;
   return Boolean(process.env.DATABASE_URL?.trim());
 }

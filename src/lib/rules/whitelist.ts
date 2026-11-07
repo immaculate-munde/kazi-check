@@ -45,6 +45,13 @@ export const OFFICIAL_ORGANIZATIONS = [
     careersUrl: "https://www.centralbank.go.ke/cbkcareers/",
     officialUrl: "https://www.centralbank.go.ke/",
   },
+  {
+    name: "Kenya Defence Forces",
+    domains: ["mod.go.ke"],
+    aliases: ["kenya defence forces", "kdf", "ministry of defence"],
+    careersUrl: null,
+    officialUrl: "https://mod.go.ke/",
+  },
 ] as const;
 
 /** Seeded official Kenyan domains used by the rules engine. */

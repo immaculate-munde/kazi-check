@@ -1,24 +1,31 @@
 import { extractFromText } from "@/lib/extract";
-import { runRules } from "@/lib/rules";
+import { runRules, withExtraEvidence } from "@/lib/rules";
 import {
+  confirmYourselfList,
   recommendedAction,
   scoreToRiskBand,
   stampEvidence,
   toRiskScore,
-  verdictFromBand,
 } from "@/lib/risk";
 import { detectSubjectsFromText } from "@/lib/subjects/normalize";
 import {
-  memoryCreateCheck,
-  memoryGetOrCreateSubject,
-  memoryLookupFlagCounts,
-} from "@/lib/store/memory";
+  createCheck,
+  getOrCreateSubject,
+  lookupFlagCounts,
+} from "@/lib/store";
+import {
+  listingToEvidence,
+  matchOfficialListing,
+  officialCoverageLabel,
+} from "@/lib/official";
+import { maskPii } from "@/lib/pii";
 import type { CheckDirection, CheckRecord, SubjectRef } from "@/lib/types";
 
 export async function runCheckPipeline(input: {
   direction: CheckDirection;
   text: string;
   url?: string;
+  notifyPhone?: string;
 }): Promise<CheckRecord> {
   const direction = input.direction === "offer_letter" ? "job_offer" : input.direction;
   const rawText = input.text.trim() || input.url || "";
@@ -28,50 +35,59 @@ export async function runCheckPipeline(input: {
 
   const extracted = await extractFromText(direction, rawText);
   const detected = detectSubjectsFromText(rawText);
+  const community = await lookupFlagCounts(detected);
 
-  const community = memoryLookupFlagCounts(detected);
-  const { score, evidence: rawEvidence } = runRules(
+  let result = runRules(
     direction,
     extracted,
     community.count,
     rawText,
     community.reasons,
+    community.status,
+    community.published,
   );
 
-  const evidence = stampEvidence(rawEvidence);
-  const riskScore = toRiskScore(score, evidence);
-  const riskBand = scoreToRiskBand(riskScore, evidence.length);
-  const verdict = verdictFromBand(input.direction, riskBand);
+  const listing = matchOfficialListing(extracted, rawText);
+  const listingEvidence = listingToEvidence(listing);
+  const listingGaps =
+    listing.result === "NO_LISTING_INDEXED"
+      ? [listing.detail, officialCoverageLabel()]
+      : [officialCoverageLabel()];
+  result = withExtraEvidence(
+    result,
+    listingEvidence ? [listingEvidence] : [],
+    rawText,
+    listingGaps,
+  );
 
-  const subjects: SubjectRef[] = detected.map((d) => {
+  const evidence = stampEvidence(result.evidence);
+  const riskScore = toRiskScore(result.score, evidence);
+  const riskBand = scoreToRiskBand(riskScore, evidence.length);
+  const verdict = result.verdict;
+  const { masked } = maskPii(rawText);
+
+  const subjects: SubjectRef[] = [];
+  for (const d of detected) {
     const summary =
-      verdict === "SCAM" || verdict === "HIGH_RISK" || verdict === "DO_NOT_PROCEED"
+      verdict === "SCAM" || verdict === "HIGH_RISK"
         ? `Auto-linked from ${verdict} check`
         : "";
-    const row = memoryGetOrCreateSubject(
-      d.kind,
-      d.key,
-      direction,
-      summary,
-    );
-    return {
+    const row = await getOrCreateSubject(d.kind, d.key, direction, summary);
+    subjects.push({
       id: row.id,
       kind: row.kind,
       key: row.key,
       flagCount: row.flagCount,
       topReasons: row.topReasons,
-    };
-  });
+    });
+  }
 
-  if (
-    (verdict === "SCAM" || verdict === "HIGH_RISK") &&
-    subjects.length === 0
-  ) {
-    const fallback = memoryGetOrCreateSubject(
+  if ((verdict === "SCAM" || verdict === "HIGH_RISK") && subjects.length === 0) {
+    const fallback = await getOrCreateSubject(
       "url",
-      `check:${rawText.slice(0, 48).replace(/\s+/g, "_")}`,
+      `check:${masked.slice(0, 48).replace(/\s+/g, "_")}`,
       direction,
-      "Unstructured scam text",
+      "Unstructured high-risk text",
     );
     subjects.push({
       id: fallback.id,
@@ -82,17 +98,22 @@ export async function runCheckPipeline(input: {
     });
   }
 
-  return memoryCreateCheck({
+  return createCheck({
     direction: input.direction,
-    rawText,
+    rawText: masked,
     url: input.url,
     verdict,
-    score,
+    score: result.score,
     riskScore,
     riskBand,
-    recommendedAction: recommendedAction(riskBand),
+    recommendedAction: recommendedAction(verdict),
     extracted,
     evidence,
+    findings: result.findings,
     subjects,
+    gaps: result.gaps,
+    confirmYourself: confirmYourselfList(verdict),
+    officialListing: listing,
+    notifyPhone: input.notifyPhone?.trim() || null,
   });
 }

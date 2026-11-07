@@ -1,9 +1,16 @@
 export type CheckDirection = "job_offer" | "applicant" | "offer_letter";
 
-export type OfferVerdict = "SAFE" | "SUSPICIOUS" | "SCAM";
-export type ApplicantVerdict = "CREDIBLE" | "SUSPICIOUS" | "HIGH_RISK";
-export type OfferLetterVerdict = "PROCEED" | "CAUTION" | "DO_NOT_PROCEED";
-export type Verdict = OfferVerdict | ApplicantVerdict | OfferLetterVerdict;
+/** Product verdicts. Never SAFE or "legit". */
+export type Verdict =
+  | "SCAM"
+  | "HIGH_RISK"
+  | "CAUTION"
+  | "UNSURE"
+  | "NO_RED_FLAGS";
+
+export type OfferVerdict = Verdict;
+export type ApplicantVerdict = Verdict;
+export type OfferLetterVerdict = Verdict;
 
 export type RiskBand =
   | "LOW"
@@ -14,6 +21,9 @@ export type RiskBand =
 
 export type SubjectKind = "domain" | "phone" | "url" | "handle" | "email";
 
+/** Community-registry moderation. Unpublished and unverified never stamp SCAM. */
+export type RegistryStatus = "unverified" | "under_investigation" | "confirmed";
+
 export type EvidenceItem = {
   ruleId: string;
   title: string;
@@ -22,6 +32,21 @@ export type EvidenceItem = {
   source?: string;
   sourceType?: "content" | "registry" | "whitelist" | "community" | "heuristic";
   retrievedAt?: string;
+  points?: number;
+};
+
+/** Every check reports one of these. Unknown is never a SCAM stamp. */
+export type FindingOutcome = "flagged" | "passed" | "unknown";
+
+export type Finding = {
+  checkKey: string;
+  title: string;
+  outcome: FindingOutcome;
+  /** Awarded only when outcome is flagged. Passed and unknown contribute 0. */
+  points: number;
+  explanation: string;
+  evidence: string | null;
+  source: string;
 };
 
 export type ExtractedOffer = {
@@ -35,6 +60,9 @@ export type ExtractedOffer = {
   phones: string[];
   urls: string[];
   rawSignals: string[];
+  channel?: string | null;
+  asksForId?: boolean;
+  claimedHeadcount?: number | null;
 };
 
 export type ExtractedApplicant = {
@@ -66,6 +94,21 @@ export type Extracted =
   | ExtractedApplicant
   | ExtractedOfferLetter;
 
+export type OfficialListingResult =
+  | "MATCHES_LISTING"
+  | "ROUTE_MISMATCH"
+  | "NO_LISTING_INDEXED";
+
+export type OfficialListingMatch = {
+  result: OfficialListingResult;
+  detail: string;
+  listing: {
+    orgName: string;
+    applyUrl: string;
+    dateIndexed: string;
+  } | null;
+};
+
 export type SubjectRef = {
   id: string;
   kind: SubjectKind;
@@ -92,7 +135,13 @@ export type CheckRecord = {
   recommendedAction: string;
   extracted: Extracted;
   evidence: EvidenceItem[];
+  findings: Finding[];
   subjects: SubjectRef[];
+  gaps: string[];
+  confirmYourself: string[];
+  officialListing?: OfficialListingMatch;
+  notifyPhone?: string | null;
+  retroAlertedAt?: string | null;
   createdAt: string;
 };
 
@@ -106,6 +155,8 @@ export type RegistrySubject = {
   lastFlaggedAt: string | null;
   topReasons: string[];
   recentFlags: { reason: string; createdAt: string }[];
+  status: RegistryStatus;
+  isPublished: boolean;
 };
 
 export type CreateCheckInput = {
@@ -167,7 +218,7 @@ export type QuizResult = {
 export type OfferAnalysisRecord = {
   id: string;
   rawText: string;
-  verdict: OfferLetterVerdict;
+  verdict: Verdict;
   riskScore: number;
   riskBand: RiskBand;
   greenFlags: EvidenceItem[];
@@ -197,6 +248,48 @@ export type TrackerItem = {
   status: TrackerStatus;
   notes: string;
   followUpDate?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type GateResult = "BLOCKED" | "NEEDS_CONFIRMATION" | "ELIGIBLE";
+
+export type ApplyPacket = {
+  mode: "official_portal" | "official_email" | "draft_only";
+  applyUrl?: string;
+  mailto?: string;
+  draftText: string;
+  orgName?: string;
+  note: string;
+  trackerId?: string;
+};
+
+export type BotAdStatus =
+  | "queued"
+  | "extracted"
+  | "verified"
+  | "gated"
+  | "drafted"
+  | "applied"
+  | "failed";
+
+export type BotQueueItem = {
+  id: string;
+  sourceType: "paste" | "txt" | "pdf" | "image" | "csv";
+  filename?: string;
+  status: BotAdStatus;
+  maskedText: string;
+  checkId?: string;
+  verdict?: Verdict;
+  gate?: GateResult;
+  reason?: string;
+  gaps: string[];
+  confirmedGaps?: string[];
+  draftText?: string;
+  apply?: ApplyPacket;
+  notifyPhone?: string;
+  retroAlertedAt?: string;
+  error?: string;
   createdAt: string;
   updatedAt: string;
 };
